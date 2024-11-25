@@ -1,0 +1,25 @@
+services:
+  redis:
+    container_name: deepersleeper_redis
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+  
+  fastapi:
+    build: .
+    container_name: deepersleeper_fastapi
+    ports:
+      - "8000:8000"
+    restart: always
+    volumes:
+      - ./api:/app/api
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
