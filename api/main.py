@@ -41,3 +41,10 @@ async def get_team_standings():
 async def get_per_week_stats():
     return Main.get_per_week_points()
 
+@app.get('/standings-per-week')
+async def get_rankings():
+    return Main.get_per_week_standings()
+
+@app.get('/team-transactions-count')
+async def get_transactions_count():
+    return Main.get_teams_transactions_count()

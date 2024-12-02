@@ -20,3 +20,6 @@ def get_league_rosters(league_id: str):
 
 def get_league_matchups_for_week(league_id: str, week: int):
     return requests.get(f'{os.getenv("SLEEPER_BASE_URL")}/league/{league_id}/matchups/{week}').json()
+
+def get_league_transactions_for_week(league_id: str, week: int):
+    return requests.get(f'{os.getenv("SLEEPER_BASE_URL")}/league/{league_id}/transactions/{week}').json()
