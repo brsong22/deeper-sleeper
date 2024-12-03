@@ -6,7 +6,8 @@ import services.main as Main
 
 app = FastAPI()
 origins = [
-    "http://localhost:5173",  # React app running on localhost
+    "http://localhost:3000",  # React app running on localhost
+    "http://172.20.0.4:3000",
     # "https://yourfrontenddomain.com",  # If you have a production frontend
 ]
 
