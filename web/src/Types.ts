@@ -94,3 +94,23 @@ type TeamPointsStats = {
 export type TeamPointsPerWeek = {
     [key: string]: TeamPointsStats
 }
+
+export type SleeperWeeklyStats = {
+    name: string,
+    first: number,
+    second: number,
+    third: number,
+    worst: number,
+    mostEfficient: number,
+    leastEfficient: number,
+    winAgainstHighestPointsLoss: number,
+    highestPointsLoss: number,
+    lowestPointsWin: number,
+    loseAgainstLowestPointsWin: number,
+    biggestBlowoutWin: number,
+    biggestBlowoutLoss: number,
+    narrowVictory: number,
+    narrowLoss: number,
+    overachiever: number,
+    underachiever: number
+}

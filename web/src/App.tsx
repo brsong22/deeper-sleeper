@@ -1,32 +1,30 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import './App.css'
 import { AgGridReact } from 'ag-grid-react'; // React Data Grid Component
 import 'ag-grid-community/styles/ag-grid.css'; // Mandatory CSS required by the Data Grid
 import 'ag-grid-community/styles/ag-theme-quartz.css'; // Optional Theme applied to the Data Grid
-import { ResponsiveLine } from '@nivo/line';
 import { ResponsiveBump } from '@nivo/bump';
-import { ResponsiveBar } from '@nivo/bar';
+import { BarDatum, ResponsiveBar } from '@nivo/bar';
 import {
 	NflState,
 	LeagueInfo,
 	LeagueUserDict,
 	LeagueRoster,
 	LeagueRosterDict,
-	LeagueMatchupDict,
-	TeamPointsPerWeek
+	SleeperWeeklyStats
 } from './Types'
-import { ValueGetterParams } from 'ag-grid-community';
+import { ColDef, ValueGetterParams } from 'ag-grid-community';
 
 function App() {
+	const API_URL = process.env.REACT_APP_API_URL;
 
 	const [nflState, setNflState] = useState<NflState>();
 	const [leagueInfo, setLeagueInfo] = useState<LeagueInfo>();
 	const [leagueUsers, setLeagueUsers] = useState<LeagueUserDict>();
 	const [leagueRosters, setLeagueRosters] = useState<LeagueRosterDict>();
-	const [leagueMatchups, setLeagueMatchups] = useState<LeagueMatchupDict>();
 	const [leagueStandings, setLeagueStandings] = useState<LeagueRoster[]>();
-	const [colDefs, setColDefs] = useState([
+	const leagueStandingsColDefs = [
 		{
 			headerName: 'Rank',
 			valueGetter: (r: ValueGetterParams) => r.data.rank,
@@ -59,14 +57,14 @@ function App() {
 				textAlign: 'left'
 			}
 		},
-		{
-			headerName: 'Ties',
-			valueGetter: (r: ValueGetterParams) => r.data.settings.ties,
-			flex: 1,
-			cellStyle: {
-				textAlign: 'left'
-			}
-		},
+		// {
+		// 	headerName: 'Ties',
+		// 	valueGetter: (r: ValueGetterParams) => r.data.settings.ties,
+		// 	flex: 1,
+		// 	cellStyle: {
+		// 		textAlign: 'left'
+		// 	}
+		// },
 		{
 			headerName: 'Points Scored',
 			valueGetter: (r: ValueGetterParams) => parseFloat(`${r.data.settings.fpts}.${r.data.settings.fpts_decimal}`),
@@ -82,11 +80,373 @@ function App() {
 			cellStyle: {
 				textAlign: 'left'
 			}
+		},
+		{
+			headerName: 'Efficiency %',
+			valueGetter: (r: ValueGetterParams) => (parseFloat(`${r.data.settings.fpts}.${r.data.settings.fpts_decimal}`) / parseFloat(`${r.data.settings.ppts}.${r.data.settings.ppts_decimal}`)).toPrecision(2),
+			flex: 1,
+			cellStyle: {
+				textAlign: 'left'
+			}
+		},
+		{
+			headerName: 'Points Against',
+			valueGetter: (r: ValueGetterParams) => parseFloat(`${r.data.settings.fpts_against}.${r.data.settings.fpts_decimal}`),
+			flex: 1,
+			cellsStyle: {
+				textAlign: 'left'
+			}
 		}
-	]);
-	const [teamWeeklyPoints, setTeamWeeklyPoints] = useState();
-	const [teamWeeklyMaxPoints, setTeamWeeklyMaxPoints] = useState();
-	const [weeklyStandings, setWeeklyStandings] = useState([
+	];
+	const sleeperTally:SleeperWeeklyStats[] = [
+		{
+			name: 'derek',
+			first: 0,
+			second: 0,
+			third: 0,
+			worst: 3,
+			mostEfficient: 2,
+			leastEfficient: 1,
+			winAgainstHighestPointsLoss: 0,
+			highestPointsLoss: 2,
+			lowestPointsWin: 0,
+			loseAgainstLowestPointsWin: 4,
+			biggestBlowoutWin: 0,
+			biggestBlowoutLoss: 2,
+			narrowVictory: 0,
+			narrowLoss: 2,
+			overachiever: 0,
+			underachiever: 1
+		},
+		{
+			name: 'becky',
+			first: 1,
+			second: 4,
+			third: 1,
+			worst: 4,
+			mostEfficient: 1,
+			leastEfficient: 2,
+			winAgainstHighestPointsLoss: 2,
+			highestPointsLoss: 0,
+			lowestPointsWin: 0,
+			loseAgainstLowestPointsWin: 1,
+			biggestBlowoutWin: 1,
+			biggestBlowoutLoss: 2,
+			narrowVictory: 0,
+			narrowLoss: 0,
+			overachiever: 2,
+			underachiever: 3
+		},
+		{
+			name: 'jen',
+			first: 0,
+			second: 2,
+			third: 2,
+			worst: 0,
+			mostEfficient: 2,
+			leastEfficient: 1,
+			winAgainstHighestPointsLoss: 2,
+			highestPointsLoss: 0,
+			lowestPointsWin: 5,
+			loseAgainstLowestPointsWin: 2,
+			biggestBlowoutWin: 0,
+			biggestBlowoutLoss: 1,
+			narrowVictory: 2,
+			narrowLoss: 1,
+			overachiever: 0,
+			underachiever: 2
+		},
+		{
+			name: 'andy',
+			first: 0,
+			second: 0,
+			third: 1,
+			worst: 1,
+			mostEfficient: 1,
+			leastEfficient: 6,
+			winAgainstHighestPointsLoss: 0,
+			highestPointsLoss: 4,
+			lowestPointsWin: 0,
+			loseAgainstLowestPointsWin: 4,
+			biggestBlowoutWin: 3,
+			biggestBlowoutLoss: 1,
+			narrowVictory: 0,
+			narrowLoss: 1,
+			overachiever: 0,
+			underachiever: 1
+		},
+		{
+			name: 'bort',
+			first: 3,
+			second: 1,
+			third: 1,
+			worst: 1,
+			mostEfficient: 1,
+			leastEfficient: 0,
+			winAgainstHighestPointsLoss: 2,
+			highestPointsLoss: 4,
+			lowestPointsWin: 1,
+			loseAgainstLowestPointsWin: 0,
+			biggestBlowoutWin: 2,
+			biggestBlowoutLoss: 1,
+			narrowVictory: 2,
+			narrowLoss: 1,
+			overachiever: 2,
+			underachiever: 1
+		},
+		{
+			name: 'donny',
+			first: 1,
+			second: 2,
+			third: 2,
+			worst: 0,
+			mostEfficient: 2,
+			leastEfficient: 1,
+			winAgainstHighestPointsLoss: 2,
+			highestPointsLoss: 3,
+			lowestPointsWin: 0,
+			loseAgainstLowestPointsWin: 0,
+			biggestBlowoutWin: 0,
+			biggestBlowoutLoss: 2,
+			narrowVictory: 1,
+			narrowLoss: 0,
+			overachiever: 1,
+			underachiever: 2
+		},
+		{
+			name: 'kk',
+			first: 1,
+			second: 1,
+			third: 3,
+			worst: 2,
+			mostEfficient: 2,
+			leastEfficient: 0,
+			winAgainstHighestPointsLoss: 2,
+			highestPointsLoss: 1,
+			lowestPointsWin: 1,
+			loseAgainstLowestPointsWin: 0,
+			biggestBlowoutWin: 0,
+			biggestBlowoutLoss: 0,
+			narrowVictory: 0,
+			narrowLoss: 2,
+			overachiever: 0,
+			underachiever: 1
+		},
+		{
+			name: 'alice',
+			first: 4,
+			second: 0,
+			third: 3,
+			worst: 0,
+			mostEfficient: 4,
+			leastEfficient: 0,
+			winAgainstHighestPointsLoss: 2,
+			highestPointsLoss: 0,
+			lowestPointsWin: 4,
+			loseAgainstLowestPointsWin: 1,
+			biggestBlowoutWin: 2,
+			biggestBlowoutLoss: 1,
+			narrowVictory: 1,
+			narrowLoss: 0,
+			overachiever: 2,
+			underachiever: 0,
+		},
+		{
+			name: 'phuong',
+			first: 3,
+			second: 3,
+			third: 0,
+			worst: 0,
+			mostEfficient: 1,
+			leastEfficient: 2,
+			winAgainstHighestPointsLoss: 1,
+			highestPointsLoss: 0,
+			lowestPointsWin: 1,
+			loseAgainstLowestPointsWin: 1,
+			biggestBlowoutWin: 4,
+			biggestBlowoutLoss: 1,
+			narrowVictory: 0,
+			narrowLoss: 0,
+			overachiever: 5,
+			underachiever: 0,
+		},
+		{
+			name: 'cindi',
+			first: 1,
+			second: 1,
+			third: 1,
+			worst: 3,
+			mostEfficient: 1,
+			leastEfficient: 1,
+			winAgainstHighestPointsLoss: 1,
+			highestPointsLoss: 0,
+			lowestPointsWin: 2,
+			loseAgainstLowestPointsWin: 1,
+			biggestBlowoutWin: 1,
+			biggestBlowoutLoss: 2,
+			narrowVictory: 1,
+			narrowLoss: 0,
+			overachiever: 2,
+			underachiever: 3
+		}
+	];
+	const sleeperTallyRankColDefs: ColDef<SleeperWeeklyStats>[] = [
+		{
+			headerName: 'Team',
+			field: 'name',
+			flex: 1,
+			cellStyle: {
+				textAlign: 'left'
+			}
+		},
+		{
+			headerName: '1st',
+			field: 'first',
+			flex: 1,
+			cellStyle: {
+				textAlign: 'left'
+			}
+		},
+		{
+			headerName: '2nd',
+			field: 'second',
+			flex: 1,
+			cellStyle: {
+				textAlign: 'left'
+			}
+		},
+		{
+			headerName: '3rd',
+			field: 'third',
+			flex: 1,
+			cellStyle: {
+				textAlign: 'left'
+			}
+		},
+		{
+			headerName: 'Worst',
+			field: 'worst',
+			flex: 1,
+			cellStyle: {
+				textAlign: 'left'
+			}
+		},
+		{
+			headerName: 'Most Efficient',
+			field: 'mostEfficient',
+			flex: 1,
+			cellStyle: {
+				textAlign: 'left'
+			}
+		},
+		{
+			headerName: 'Least Efficient',
+			field: 'leastEfficient',
+			flex: 1,
+			cellStyle: {
+				textAlign: 'left'
+			}
+		},
+		{
+			headerName: 'Over Achiever',
+			field: 'overachiever',
+			flex: 1,
+			cellStyle: {
+				textAlign: 'left'
+			}
+		},
+		{
+			headerName: 'Under Achiever',
+			field: 'underachiever',
+			flex: 1,
+			cellStyle: {
+				textAlign: 'left'
+			}
+		}
+	];
+	const sleeperTallyMatchupColDefs: ColDef<SleeperWeeklyStats>[] = [
+		{
+			headerName: 'Team',
+			field: 'name',
+			flex: 1,
+			cellStyle: {
+				textAlign: 'left'
+			}
+		},
+		{
+			headerName: 'W vs High Pts',
+			headerTooltip: 'Wins v. Highest Pts. Loss',
+			field: 'winAgainstHighestPointsLoss',
+			flex: 1,
+			cellStyle: {
+				textAlign: 'left'
+			}
+		},
+		{
+			headerName: 'High Pts L',
+			headerTooltip: 'Highest Pts. Losses',
+			field: 'highestPointsLoss',
+			flex: 1,
+			cellStyle: {
+				textAlign: 'left'
+			}
+		},
+		{
+			headerName: 'Low Pts W',
+			headerTooltip: 'Lowest Pts. Wins',
+			field: 'lowestPointsWin',
+			flex: 1,
+			cellStyle: {
+				textAlign: 'left'
+			}
+		},
+		{
+			headerName: 'L vs Low Pts.',
+			headerTooltip: 'Losses v. Lowest Pts. Win',
+			field: 'loseAgainstLowestPointsWin',
+			flex: 1,
+			cellStyle: {
+				textAlign: 'left'
+			}
+		},
+		{
+			headerName: 'Blowout W',
+			headerTooltip: 'Biggest Blowout Wins',
+			field: 'biggestBlowoutWin',
+			flex: 1,
+			cellStyle: {
+				textAlign: 'left'
+			}
+		},
+		{
+			headerName: 'Blowout L',
+			headerTooltip: 'Biggest Blowout Losses',
+			field: 'biggestBlowoutLoss',
+			flex: 1,
+			cellStyle: {
+				textAlign: 'left'
+			}
+		},
+		{
+			headerName: 'Narrow W',
+			headerTooltip: 'Narrowest Victories',
+			field: 'narrowVictory',
+			flex: 1,
+			cellStyle: {
+				textAlign: 'left'
+			}
+		},
+		{
+			headerName: 'Narrow L',
+			headerTooltip: 'Narrowest Losses',
+			field: 'narrowLoss',
+			flex: 1,
+			cellStyle: {
+				textAlign: 'left'
+			}
+		}
+	];
+	const weeklyStandings = [
 		{
 		  "id": "derekdai01",
 		  "data": [
@@ -205,7 +565,7 @@ function App() {
 			},
 			{
 			  "x": 14,
-			  "y": 4
+			  "y": 3
 			}
 		  ]
 		},
@@ -262,11 +622,11 @@ function App() {
 			},
 			{
 			  "x": 13,
-			  "y": 2
+			  "y": 5
 			},
 			{
 			  "x": 14,
-			  "y": 2
+			  "y": 4
 			}
 		  ]
 		},
@@ -388,7 +748,7 @@ function App() {
 			},
 			{
 			  "x": 14,
-			  "y": 8
+			  "y": 6
 			}
 		  ]
 		},
@@ -449,7 +809,7 @@ function App() {
 			},
 			{
 			  "x": 14,
-			  "y": 6
+			  "y": 7
 			}
 		  ]
 		},
@@ -506,7 +866,7 @@ function App() {
 			},
 			{
 			  "x": 13,
-			  "y": 5
+			  "y": 3
 			},
 			{
 			  "x": 14,
@@ -628,11 +988,11 @@ function App() {
 			},
 			{
 			  "x": 13,
-			  "y": 3
+			  "y": 2
 			},
 			{
 			  "x": 14,
-			  "y": 3
+			  "y": 2
 			}
 		  ]
 		},
@@ -693,32 +1053,31 @@ function App() {
 			},
 			{
 			  "x": 14,
-			  "y": 7
+			  "y": 8
 			}
 		  ]
 		}
-	]);
+	];
 	const [transactionTotals, setTransactionTotals] = useState();
 
 	useEffect(() => {
 		try {
-			axios.get('http://0.0.0.0:8000/')
+			axios.get(`${API_URL}/`)
 			.then(response => {
 				const data = response.data;
 				setNflState(data['nfl_state']);
 				setLeagueInfo(data['league_info']);
 				setLeagueUsers(data['league_users']);
 				setLeagueRosters(data['league_rosters']);
-				setLeagueMatchups(data['league_matchups']);
 			})
 		} catch (error) {
 			console.error('Error fetching data:', error);
 		}
-	}, []);
+	}, [API_URL]);
 
 	useEffect(() => {
 		try {
-			axios.get('http://0.0.0.0:8000/standings')
+			axios.get(`${API_URL}/standings`)
 			.then(response => {
 				const data = response.data;
 				const standings = data.map((roster: LeagueRoster, index: number) => ({
@@ -731,50 +1090,11 @@ function App() {
 		} catch (error) {
 			console.error('Error getting standing:', error);
 		}
-	}, [leagueUsers]);
+	}, [API_URL, leagueUsers]);
 
 	useEffect(() => {
 		try {
-			axios.get('http://0.0.0.0:8000/points-per-week')
-			.then(response => {
-				const data = response.data;
-				const pointsLineData = Object.keys(data).map((roster_id) => {
-					const teamName = leagueUsers?.[leagueRosters?.[roster_id].owner_id ?? ''].display_name;
-					const roster_pts = data[roster_id];
-					const weekly_pts = Object.keys(roster_pts).map((week) => ({
-						x: parseInt(week),
-						y: roster_pts[week]['points_scored']
-					}));
-
-					return {
-						id: teamName,
-						data: weekly_pts
-					}
-				});
-				setTeamWeeklyPoints(pointsLineData);
-				const maxPointsLineData = Object.keys(data).map((roster_id) => {
-					const teamName = leagueUsers?.[leagueRosters?.[roster_id].owner_id ?? ''].display_name;
-					const roster_pts = data[roster_id];
-					const weekly_max_pts = Object.keys(roster_pts).map((week) => ({
-						x: parseInt(week),
-						y: roster_pts[week]['max_points']
-					}));
-
-					return {
-						id: teamName,
-						data: weekly_max_pts
-					}
-				});
-				setTeamWeeklyMaxPoints(maxPointsLineData)
-			})
-		} catch (error) {
-			console.error('Error fetching weekly points:', error);
-		}
-	}, [leagueRosters, leagueUsers]);
-
-	useEffect(() => {
-		try {
-			axios.get('http://0.0.0.0:8000/team-transactions-count')
+			axios.get(`${API_URL}/team-transactions-count`)
 			.then(response => {
 				const data = response.data;
 				const transactionTypes = new Set<string>([]);
@@ -792,310 +1112,179 @@ function App() {
 		} catch (error) {
 			console.error('Error fetching transaction totals:', error);
 		}
-	}, [leagueUsers, leagueRosters]);
+	}, [API_URL, leagueUsers, leagueRosters]);
 
 	// const fetchRankings = async () => {
 	// 	const rankingsData = axios.get('http://0.0.0.0:8000/rankings')
 	// };
-
+	
 	return (
 		<>
 			<h1><strong>{leagueInfo?.name}</strong></h1>
 			<span>Status: {leagueInfo?.status}</span>
-			<br />
-			<h3>Week {nflState?.week}:</h3>
-			<div className="card ag-theme-quartz">
-				{leagueStandings && <AgGridReact
-					rowData={leagueStandings}
-					columnDefs={colDefs}
-					context={leagueUsers}
-				/>}
-				<br /><br />
-				<h3>Points per Week:</h3>
-				{teamWeeklyPoints && <ResponsiveLine
-					data={teamWeeklyPoints}
-					margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
-					xScale={{ type: 'point' }}
-					yScale={{
-						type: 'linear',
-						min: 'auto',
-						max: 'auto',
-						stacked: false,
-						reverse: false
-					}}
-					yFormat=" >-.2f"
-					axisTop={null}
-					axisRight={null}
-					axisBottom={{
-						tickSize: 5,
-						tickPadding: 5,
-						tickRotation: 0,
-						legend: 'Week',
-						legendOffset: 36,
-						legendPosition: 'middle',
-						truncateTickAt: 0
-					}}
-					axisLeft={{
-						tickSize: 5,
-						tickPadding: 5,
-						tickRotation: 0,
-						legend: 'Points',
-						legendOffset: -40,
-						legendPosition: 'middle',
-						truncateTickAt: 0
-					}}
-					pointSize={10}
-					pointColor={{ theme: 'background' }}
-					pointBorderWidth={2}
-					pointBorderColor={{ from: 'serieColor' }}
-					pointLabel="data.yFormatted"
-					pointLabelYOffset={-12}
-					enableTouchCrosshair={true}
-					useMesh={true}
-					legends={[
-						{
-							anchor: 'bottom-right',
-							direction: 'column',
-							justify: false,
-							translateX: 100,
-							translateY: 0,
-							itemsSpacing: 0,
-							itemDirection: 'left-to-right',
-							itemWidth: 80,
-							itemHeight: 20,
-							itemOpacity: 0.75,
-							symbolSize: 12,
-							symbolShape: 'circle',
-							symbolBorderColor: 'rgba(0, 0, 0, .5)',
-							effects: [
-								{
-									on: 'hover',
-									style: {
-										itemBackground: 'rgba(0, 0, 0, .03)',
-										itemOpacity: 1
-									}
-								}
-							]
-						}
-					]}
-					tooltip={({ point }) => (
-						<div style={{ background: '#fff', padding: '5px', border: '1px solid #ccc' }}>
-						  {point.serieId}
-						  <br />
-						  <strong>Week:</strong> {point.data.x}
-						  <br />
-						  <strong>Points:</strong> {point.data.y}
+			<div className="w-full">
+				<div className="row-start-1 w-full">
+					<h3>Week {nflState?.week}:</h3>
+					<div className="ag-theme-quartz w-full h-[500px]">
+						{leagueStandings && <AgGridReact
+							rowData={leagueStandings}
+							columnDefs={leagueStandingsColDefs}
+							context={leagueUsers}
+							/>}
+					</div>
+				</div>
+				<br />
+				<div className="row-start-2">
+					<h3>Sleeper Weekly Award Tally:</h3>
+					<div className="grid grid-rows-2">
+						<div className="row-start-1 ag-theme-quartz h-[500px]">
+							{sleeperTally && <AgGridReact
+								rowData={sleeperTally}
+								columnDefs={sleeperTallyRankColDefs}
+								context={leagueUsers}
+							/>}
 						</div>
-					  )}
-				/>}
-				<br />
-				<h3>Max Points per Week:</h3>
-				{teamWeeklyMaxPoints && <ResponsiveLine
-					data={teamWeeklyMaxPoints}
-					margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
-					xScale={{ type: 'point' }}
-					yScale={{
-						type: 'linear',
-						min: 'auto',
-						max: 'auto',
-						stacked: false,
-						reverse: false
-					}}
-					yFormat=" >-.2f"
-					axisTop={null}
-					axisRight={null}
-					axisBottom={{
-						tickSize: 5,
-						tickPadding: 5,
-						tickRotation: 0,
-						legend: 'Week',
-						legendOffset: 36,
-						legendPosition: 'middle',
-						truncateTickAt: 0
-					}}
-					axisLeft={{
-						tickSize: 5,
-						tickPadding: 5,
-						tickRotation: 0,
-						legend: 'Points',
-						legendOffset: -40,
-						legendPosition: 'middle',
-						truncateTickAt: 0
-					}}
-					pointSize={10}
-					pointColor={{ theme: 'background' }}
-					pointBorderWidth={2}
-					pointBorderColor={{ from: 'serieColor' }}
-					pointLabel="data.yFormatted"
-					pointLabelYOffset={-12}
-					enableTouchCrosshair={true}
-					useMesh={true}
-					legends={[
-						{
-							anchor: 'bottom-right',
-							direction: 'column',
-							justify: false,
-							translateX: 100,
-							translateY: 0,
-							itemsSpacing: 0,
-							itemDirection: 'left-to-right',
-							itemWidth: 80,
-							itemHeight: 20,
-							itemOpacity: 0.75,
-							symbolSize: 12,
-							symbolShape: 'circle',
-							symbolBorderColor: 'rgba(0, 0, 0, .5)',
-							effects: [
-								{
-									on: 'hover',
-									style: {
-										itemBackground: 'rgba(0, 0, 0, .03)',
-										itemOpacity: 1
-									}
-								}
-							]
-						}
-					]}
-					tooltip={({ point }) => (
-						<div style={{ background: '#fff', padding: '5px', border: '1px solid #ccc' }}>
-						  {point.serieId}
-						  <br />
-						  <strong>Week:</strong> {point.data.x}
-						  <br />
-						  <strong>Max Points:</strong> {point.data.y}
+						<div className="row-start-2 ag-theme-quartz w-full h-[500px]">
+							{sleeperTally && <AgGridReact 
+								rowData={sleeperTally}
+								columnDefs={sleeperTallyMatchupColDefs}
+							/>}
 						</div>
-					  )}
-				/>}
+					</div>
+				</div>
 				<br />
-				<h3>Standings per Week:</h3>
+				<div className="row-start-3 w-full h-[350px]">
+					<h3>Standings per Week:</h3>
+					{weeklyStandings && <ResponsiveBump
+						data={weeklyStandings}
+						colors={{ scheme: 'nivo' }}
+						lineWidth={3}
+						activeLineWidth={6}
+						inactiveLineWidth={3}
+						inactiveOpacity={0.15}
+						pointSize={10}
+						activePointSize={16}
+						inactivePointSize={0}
+						pointColor={{ theme: 'background' }}
+						pointBorderWidth={3}
+						activePointBorderWidth={3}
+						pointBorderColor={{ from: 'serie.color' }}
+						axisTop={{
+							tickSize: 5,
+							tickPadding: 5,
+							tickRotation: 0,
+							legend: '',
+							legendPosition: 'middle',
+							legendOffset: -36,
+							truncateTickAt: 0
+						}}
+						axisBottom={{
+							tickSize: 5,
+							tickPadding: 5,
+							tickRotation: 0,
+							legend: 'week',
+							legendPosition: 'middle',
+							legendOffset: 32,
+							truncateTickAt: 0
+						}}
+						axisLeft={{
+							tickSize: 5,
+							tickPadding: 5,
+							tickRotation: 0,
+							legend: 'standing',
+							legendPosition: 'middle',
+							legendOffset: -40,
+							truncateTickAt: 0
+						}}
+						axisRight={{
+							tickSize: 5,
+							tickPadding: 5,
+							tickRotation: 0,
+							truncateTickAt: 0
+						}}
+						margin={{ top: 40, right: 100, bottom: 40, left: 60 }}
+					/>}
+				</div>
 				<br />
-				{weeklyStandings && <ResponsiveBump
-					data={weeklyStandings}
-					colors={{ scheme: 'nivo' }}
-					lineWidth={3}
-					activeLineWidth={6}
-					inactiveLineWidth={3}
-					inactiveOpacity={0.15}
-					pointSize={10}
-					activePointSize={16}
-					inactivePointSize={0}
-					pointColor={{ theme: 'background' }}
-					pointBorderWidth={3}
-					activePointBorderWidth={3}
-					pointBorderColor={{ from: 'serie.color' }}
-					axisTop={{
-						tickSize: 5,
-						tickPadding: 5,
-						tickRotation: 0,
-						legend: '',
-						legendPosition: 'middle',
-						legendOffset: -36,
-						truncateTickAt: 0
-					}}
-					axisBottom={{
-						tickSize: 5,
-						tickPadding: 5,
-						tickRotation: 0,
-						legend: 'week',
-						legendPosition: 'middle',
-						legendOffset: 32,
-						truncateTickAt: 0
-					}}
-					axisLeft={{
-						tickSize: 5,
-						tickPadding: 5,
-						tickRotation: 0,
-						legend: 'standing',
-						legendPosition: 'middle',
-						legendOffset: -40,
-						truncateTickAt: 0
-					}}
-					axisRight={{
-						tickSize: 5,
-						tickPadding: 5,
-						tickRotation: 0,
-						truncateTickAt: 0
-					}}
-					margin={{ top: 40, right: 100, bottom: 40, left: 60 }}
-				/>}
 				<br />
-				<h3>Transaction Totals:</h3>
-				<br />
-				{transactionTotals && <ResponsiveBar
-					data={transactionTotals}
-					keys={['waiver', 'trade', 'free agent']}
-					indexBy="teamName"
-					margin={{ top: 50, right: 130, bottom: 50, left: 60 }}
-					padding={0.3}
-					valueScale={{ type: 'linear' }}
-					indexScale={{ type: 'band', round: true }}
-					colors={{ scheme: 'nivo' }}
-					borderColor={{
-						from: 'color',
-						modifiers: [
-							[
-								'darker',
-								1.6
+				<div className="row-start-4 w-full h-[350px]">
+					<h3>Transaction Totals:</h3>
+					{transactionTotals && <ResponsiveBar
+						data={transactionTotals}
+						keys={['waiver', 'trade', 'free agent']}
+						indexBy="teamName"
+						margin={{ top: 50, right: 130, bottom: 50, left: 60 }}
+						padding={0.3}
+						valueScale={{ type: 'linear' }}
+						indexScale={{ type: 'band', round: true }}
+						colors={{ scheme: 'nivo' }}
+						borderColor={{
+							from: 'color',
+							modifiers: [
+								[
+									'darker',
+									1.6
+								]
 							]
-						]
-					}}
-					axisTop={null}
-					axisRight={null}
-					axisBottom={{
-						tickSize: 5,
-						tickPadding: 5,
-						tickRotation: 0,
-						legend: 'Team',
-						legendPosition: 'middle',
-						legendOffset: 32,
-						truncateTickAt: 0
-					}}
-					axisLeft={{
-						tickSize: 5,
-						tickPadding: 5,
-						tickRotation: 0,
-						legend: 'Transactions',
-						legendPosition: 'middle',
-						legendOffset: -40,
-						truncateTickAt: 0
-					}}
-					labelSkipWidth={12}
-					labelSkipHeight={12}
-					labelTextColor={{
-						from: 'color',
-						modifiers: [
-							[
-								'darker',
-								1.6
+						}}
+						axisTop={null}
+						axisRight={null}
+						axisBottom={{
+							tickSize: 5,
+							tickPadding: 5,
+							tickRotation: 0,
+							legend: 'Team',
+							legendPosition: 'middle',
+							legendOffset: 32,
+							truncateTickAt: 0
+						}}
+						axisLeft={{
+							tickSize: 5,
+							tickPadding: 5,
+							tickRotation: 0,
+							legend: 'Transactions',
+							legendPosition: 'middle',
+							legendOffset: -40,
+							truncateTickAt: 0
+						}}
+						labelSkipWidth={12}
+						labelSkipHeight={12}
+						labelTextColor={{
+							from: 'color',
+							modifiers: [
+								[
+									'darker',
+									1.6
+								]
 							]
-						]
-					}}
-					legends={[
-						{
-							dataFrom: 'keys',
-							anchor: 'bottom-right',
-							direction: 'column',
-							justify: false,
-							translateX: 120,
-							translateY: 0,
-							itemsSpacing: 2,
-							itemWidth: 100,
-							itemHeight: 20,
-							itemDirection: 'left-to-right',
-							itemOpacity: 0.85,
-							symbolSize: 20,
-							effects: [
-								{
-									on: 'hover',
-									style: {
-										itemOpacity: 1
+						}}
+						legends={[
+							{
+								dataFrom: 'keys',
+								anchor: 'bottom-right',
+								direction: 'column',
+								justify: false,
+								translateX: 120,
+								translateY: 0,
+								itemsSpacing: 2,
+								itemWidth: 100,
+								itemHeight: 20,
+								itemDirection: 'left-to-right',
+								itemOpacity: 0.85,
+								symbolSize: 20,
+								effects: [
+									{
+										on: 'hover',
+										style: {
+											itemOpacity: 1
+										}
 									}
-								}
-							]
-						}
-					]}
-					role="application"
-				/>}
+								]
+							}
+						]}
+						role="application"
+					/>}
+				</div>
 			</div>
 		</>
 	)

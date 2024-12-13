@@ -9,31 +9,29 @@ services:
   
   api:
     build:
-      context: .
-      dockerfile: ./api/Dockerfile
+      context: ./api
     container_name: deepersleeper_api
     ports:
       - "8000:8000"
     restart: always
     networks:
       - deepersleeper_network
-    volumes:
-      - ./api:/app/api
     env_file:
-      - .env
+      - ./api/.env
     depends_on:
       - redis
 
   web:
     build:
-      context: .
-      dockerfile: ./web/Dockerfile
+      context: ./web
     container_name: deepersleeper_web
     ports:
       - "3000:3000"
     restart: always
     networks:
       - deepersleeper_network
+    env_file:
+      - ./web/.env
     depends_on:
       - api
 
