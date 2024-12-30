@@ -1,6 +1,20 @@
+from dotenv import load_dotenv
+import os
 import redis
 
-redis_client = redis.Redis(host='deepersleeper_redis', port=6379, db=0)
+load_dotenv()
+
+redis_host = os.getenv('REDIS_HOST')
+redis_port = int(os.getenv('REDIS_PORT'))
+redis_client = redis.Redis(host=redis_host, port=redis_port, db=0)
+
+def ping():
+    try:
+        redis_client.ping()
+        return {'message': 'success', 'status': 200}
+
+    except Exception as e:
+        return {'message': f'failed: {e}', 'status': 500}
 
 def save(key: str, data: str, ttl: int = None) -> None:
     if ttl:

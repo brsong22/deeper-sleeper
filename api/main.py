@@ -1,15 +1,18 @@
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+import os
 import services.sleeper as Sleeper
 import services.main as Main
 
 app = FastAPI()
-origins = [
-    "http://localhost:3000",  # React app running on localhost
-    "http://172.20.0.4:3000",
-    # "https://yourfrontenddomain.com",  # If you have a production frontend
-]
+# origins = [
+#     "http://localhost:3000",  # React app running on localhost
+#     "http://44.212.221.0:3000"
+#     # "https://yourfrontenddomain.com",  # If you have a production frontend
+# ]
+
+origins = [url.strip() for url in os.getenv('ALLOW_ORIGINS').split(',')]
 
 # Add CORSMiddleware to the FastAPI app
 app.add_middleware(
@@ -22,10 +25,15 @@ app.add_middleware(
 
 load_dotenv()
 
+@app.get('/healthcheck')
+async def healthstatus():
+    # return Main.ping()
+    return {"message": 'ok'}
+
 # just for an easy option to clear redis
-@app.get('/reset')
-async def clear() -> None:
-    Main.clear_redis()
+# @app.get('/reset')
+# async def clear() -> None:
+#     Main.clear_redis()
 
 @app.get('/')
 async def init() -> None:
