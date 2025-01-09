@@ -9,6 +9,9 @@ SLEEPER_URL = os.getenv('SLEEPER_BASE_URL')
 def get_nfl_state():
     return requests.get(f'{SLEEPER_URL}/state/nfl').json()
 
+def get_nfl_players():
+    return requests.get(f'{SLEEPER_URL}/players/nfl').json()
+
 def get_league_info(league_id: str):
     return requests.get(f'{SLEEPER_URL}/league/{league_id}').json()
 
