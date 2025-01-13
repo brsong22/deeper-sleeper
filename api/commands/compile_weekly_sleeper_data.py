@@ -13,7 +13,7 @@ import requests
 import ssl
 import time
 
-#! python ./commands/calculate_weekly_max_scores.py
+#! api > python -m commands.compiles_weekly_sleeper_data
 parser = argparse.ArgumentParser()
 parser.add_argument('--week', type=int, required=False, default=None, help='Week number to calculate max scores for (omit for all weeks)')
 args = parser.parse_args()
@@ -43,14 +43,14 @@ def compile_weekly_sleeper_data():
         start_week = league_info['settings']['start_week']
         end_week = league_info['settings']['playoff_week_start']
         # ! upsert here (and probably other places) so we update the existing league info record or insert if not found
-        doc_id = db['league_info'].insert_one({'id': LEAGUE_ID, 'info': league_info})
+        doc_id = db['league_info'].update_one({'id': LEAGUE_ID}, {'$set': {'info': league_info}}, True)
     except Exception as e:
         print(f'Error updating league info: {e}')
     # just need to make sure we have the static info for users such as name and id
     users = db['league_users'].find_one({'id': LEAGUE_ID}, {'_id': 0})
     if users is None:
         try:
-            users = sleeper.get_league_users(LEAGUE_ID)
+            users = utils.convert_keys_to_string({user['user_id']: user for user in sleeper.get_league_users(LEAGUE_ID)})
             doc_id = db['league_users'].insert_one({'id': LEAGUE_ID, 'users': users})
         except Exception as e:
             print(f'Error updating league users data: {e}')
