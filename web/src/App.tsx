@@ -19,9 +19,11 @@ import WeeklyStandings from './components/standings/WeeklyStandings';
 
 function App() {
 	const API_URL = process.env.REACT_APP_API_URL;
+	const LEAGUE_ID = process.env.REACT_APP_LEAGUE_ID;
 
 	const [nflState, setNflState] = useState<NflState>();
 	const [leagueInfo, setLeagueInfo] = useState<LeagueInfo>();
+	const [displayWeek, setDisplayWeek] = useState<number>(0);
 	const [leagueUsers, setLeagueUsers] = useState<LeagueUserDict>();
 	const [leagueRosters, setLeagueRosters] = useState<LeagueRosterDict>();
 	const [leagueStandings, setLeagueStandings] = useState<LeagueRoster[]>();
@@ -36,7 +38,7 @@ function App() {
 		},
 		{
 			headerName: 'Owner',
-			valueGetter: (r: ValueGetterParams) => r.data.name,
+			valueGetter: (r: ValueGetterParams) => leagueUsers?.[r.data.owner_id].display_name,
 			flex: 1,
 			cellStyle: {
 				textAlign: 'left'
@@ -451,27 +453,41 @@ function App() {
 
 	useEffect(() => {
 		try {
-			axios.get(`${API_URL}/`)
+			axios.get(`${API_URL}/league/${LEAGUE_ID}`, {
+				params: {
+					year: 2024
+				}
+			})
 			.then(response => {
 				const data = response.data;
 				setNflState(data['nfl_state']);
 				setLeagueInfo(data['league_info']['info']);
 				setLeagueUsers(data['league_users']);
 				setLeagueRosters(data['league_rosters']);
+
+				const playoffWeek = data['league_info']['info']['settings']['playoff_week_start'];
+				if (data['nfl_state']['leg'] >= playoffWeek) {
+					setDisplayWeek(playoffWeek - 1);
+				} else {
+					setDisplayWeek(data['nfl_state']['leg']);
+				}
 			})
 		} catch (error) {
 			console.error('Error fetching data:', error);
 		}
-	}, [API_URL]);
+	}, [API_URL, LEAGUE_ID]);
 
 	useEffect(() => {
 		try {
-			axios.get(`${API_URL}/standings`)
+			axios.get(`${API_URL}/league/${LEAGUE_ID}/state`, {
+				params: {
+					year: 2024
+				}
+			})
 			.then(response => {
 				const data = response.data;
 				const standings = data.map((roster: LeagueRoster, index: number) => ({
 					...roster,
-					name: leagueUsers?.[roster.owner_id].display_name,
 					rank: index+1
 				}))
 				setLeagueStandings(standings);
@@ -479,7 +495,7 @@ function App() {
 		} catch (error) {
 			console.error('Error getting standing:', error);
 		}
-	}, [API_URL, leagueUsers]);
+	}, [API_URL, LEAGUE_ID]);
 
 	// useEffect(() => {
 	// 	try {
@@ -513,7 +529,7 @@ function App() {
 			<span>Status: {leagueInfo?.status}</span>
 			<div className="w-full">
 				<div className="row-start-1 w-full">
-					<h3>Week {nflState?.week}:</h3>
+					<h3>Week {displayWeek}:</h3>
 					<div className="ag-theme-quartz w-full h-[500px]">
 						{leagueStandings && <AgGridReact
 							rowData={leagueStandings}
@@ -544,7 +560,7 @@ function App() {
 				<br />
 				<div className="row-start-3 w-full h-[350px]">
 					<h3>Standings per Week:</h3>
-					<WeeklyStandings />
+					<WeeklyStandings leagueId={LEAGUE_ID} rosters={leagueRosters} users={leagueUsers}/>
 				</div>
 				{/*
 				<br />

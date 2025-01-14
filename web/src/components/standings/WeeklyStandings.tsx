@@ -2,14 +2,22 @@ import { ResponsiveBump } from "@nivo/bump";
 import axios from "axios";
 import { useEffect, useState } from "react";
 
-export function WeeklyStandings() {
+export function WeeklyStandings({
+    leagueId,
+    rosters,
+    users
+}) {
     const API_URL = process.env.REACT_APP_API_URL;
 
     const [weeklyStandings, setWeeklyStandings] = useState<any>([]);
     
     useEffect(() => {
         try {
-            axios.get(`${API_URL}/standings-per-week`)
+            axios.get(`${API_URL}/league/${leagueId}/standings-per-week`, {
+                params: {
+                    year: 2024
+                }
+            })
             .then(response => {
                 type TeamRankingObject = {
                     [key: number]: {
@@ -22,7 +30,7 @@ export function WeeklyStandings() {
                 type WeeklyStandings = {
                     [key: number]: TeamRankingObject[]
                 };
-                const standings: WeeklyStandings = response.data.standings;
+                const standings: WeeklyStandings = response.data;
                 type RankingObject = {'x': string, 'y': number};
                 type RankingAccumulator = {
                     [key: string]: {
@@ -39,7 +47,7 @@ export function WeeklyStandings() {
                             acc[teamId]['data'].push({'x': week, 'y': rank});
                         } else {
                             acc[teamId] = {
-                                'id': teamId,
+                                'id': users[rosters[teamId].owner_id].display_name,
                                 'data': [{'x': week, 'y': rank}]
                             };
                         }
@@ -52,7 +60,7 @@ export function WeeklyStandings() {
         } catch (error) {
             console.error('Error fetching standings-per-week:', error);
         }
-    }, [API_URL]);
+    }, [API_URL, leagueId, rosters, users]);
 
     return (
         <ResponsiveBump

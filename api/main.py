@@ -35,24 +35,24 @@ async def healthstatus():
 # async def clear() -> None:
 #     Main.clear_redis()
 
-@app.get('/')
-async def init() -> None:
-    if not (res := Main.init()):
+@app.get('/league/{league_id}')
+async def init(league_id: str, year: int) -> None:
+    if not (res := Main.init(year, league_id)):
         print(res)
         raise HTTPException(status_code=500, detail="Error occurred retrieving resources.")
     return res
     
-@app.get('/standings')
-async def get_team_standings():
-    return Main.get_current_standings()
+@app.get('/league/{league_id}/state')
+async def get_league_state(league_id: str, year: int):
+    return Main.get_league_state(year, league_id)
 
-@app.get('/points-per-week')
-async def get_per_week_stats():
+@app.get('/league/{league_id}/points-per-week')
+async def get_per_week_stats(league_id: str, year: int):
     return Main.get_per_week_points()
 
-@app.get('/standings-per-week')
-async def get_rankings():
-    return Main.get_per_week_standings()
+@app.get('/league/{league_id}/standings-per-week')
+async def get_rankings(league_id: str, year: int):
+    return Main.get_league_standings(year, league_id)
 
 @app.get('/team-transactions-count')
 async def get_transactions_count():
