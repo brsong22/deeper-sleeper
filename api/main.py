@@ -54,6 +54,6 @@ async def get_per_week_stats(league_id: str, year: int):
 async def get_rankings(league_id: str, year: int):
     return Main.get_league_standings(year, league_id)
 
-@app.get('/team-transactions-count')
-async def get_transactions_count():
-    return Main.get_teams_transactions_count()
+@app.get('/league/{league_id}/transactions-per-week')
+async def get_transactions_count(league_id: str, year: int):
+    return Main.get_league_transactions(year, league_id)

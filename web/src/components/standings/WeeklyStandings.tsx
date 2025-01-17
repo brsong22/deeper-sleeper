@@ -39,7 +39,6 @@ export function WeeklyStandings({
                     }
                 };
                 const formattedStandings = Object.entries(standings).reduce<RankingAccumulator>((acc, [week, rankings]) => {
-                    console.log(rankings);
                     rankings.forEach((team, index) => {
                         const rank = index + 1;
                         const teamId = Object.keys(team)[0];
@@ -54,7 +53,6 @@ export function WeeklyStandings({
                     })
                     return acc;
                 }, {});
-                console.log(Object.values(formattedStandings));
                 setWeeklyStandings(Object.values(formattedStandings));
             });
         } catch (error) {
@@ -65,7 +63,7 @@ export function WeeklyStandings({
     return (
         <ResponsiveBump
             data={weeklyStandings}
-            colors={{ scheme: 'nivo' }}
+            colors={{ scheme: 'tableau10' }}
             lineWidth={3}
             activeLineWidth={6}
             inactiveLineWidth={3}

@@ -16,6 +16,7 @@ import {
 } from './Types'
 import { ColDef, ValueGetterParams } from 'ag-grid-community';
 import WeeklyStandings from './components/standings/WeeklyStandings';
+import WeeklyTransactions from './components/transactions/WeeklyTransactions';
 
 function App() {
 	const API_URL = process.env.REACT_APP_API_URL;
@@ -561,6 +562,11 @@ function App() {
 				<div className="row-start-3 w-full h-[350px]">
 					<h3>Standings per Week:</h3>
 					<WeeklyStandings leagueId={LEAGUE_ID} rosters={leagueRosters} users={leagueUsers}/>
+				</div>
+				<br />
+				<div className="row-start-4 w-full h-[350px]">
+					<h3>Transaction totals per Team:</h3>
+					<WeeklyTransactions leagueId={LEAGUE_ID} rosters={leagueRosters} users={leagueUsers}/>
 				</div>
 				{/*
 				<br />
