@@ -1,35 +1,13 @@
-import boto3
-from botocore.exceptions import ClientError
 from collections import defaultdict
-import ssl
-from typing import TypedDict
-from pymongo import MongoClient
-import certifi
-from redis_client import ping, save, get, clear
+from mongodb_client import get_db
 from dotenv import load_dotenv
-import json
 import os
-import requests
 import services.sleeper as Sleeper
 
 load_dotenv()
 LEAGUE_ID = os.getenv('LEAGUE_ID')
-cert = ssl.create_default_context(cafile=certifi.where())
-mongo_user = json.loads(os.getenv('MONGO_CREDENTIALS'))['MONGO_USER']
-mongo_pass = json.loads(os.getenv('MONGO_CREDENTIALS'))['MONGO_PASSWORD']
 
-mongo_connection = os.getenv('MONGO_CONNECTION_STRING').format(mongo_user=mongo_user, mongo_password=mongo_pass)
-mdb = MongoClient(mongo_connection, tls=True, tlsCAFile=certifi.where())
-db = mdb['nfl']
-
-# def ping_redis():
-#     ping_result = ping()
-#     print(f'ping status: {ping_result["status"]}')
-#     print(f'ping message: {ping_result["message"]}')
-#     return ping_result
-
-# def clear_redis() -> None:
-#     clear()
+db = get_db()
 
 def init(year: int, league_id = LEAGUE_ID):
     try:

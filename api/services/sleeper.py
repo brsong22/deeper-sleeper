@@ -21,6 +21,12 @@ def get_league_users(league_id: str):
 def get_league_rosters(league_id: str):
     return requests.get(f'{SLEEPER_URL}/league/{league_id}/rosters').json()
 
+def get_league_drafts(league_id: str):
+    return requests.get(f'{SLEEPER_URL}/league/{league_id}/drafts').json()
+
+def get_draft_picks(draft_id: str):
+    return requests.get(f'{SLEEPER_URL}/draft/{draft_id}/picks').json()
+
 def get_league_matchups_for_week(league_id: str, week: int):
     return requests.get(f'{os.getenv("SLEEPER_BASE_URL")}/league/{league_id}/matchups/{week}').json()
 

@@ -46,6 +46,10 @@ async def init(league_id: str, year: int) -> None:
 async def get_league_state(league_id: str, year: int):
     return Main.get_league_state(year, league_id)
 
+@app.get('/league/{league_id}/drafts')
+async def get_league_drafts(league_id: str, year: int):
+    return Main.get_league_drafts(league_id)
+
 @app.get('/league/{league_id}/points-per-week')
 async def get_per_week_stats(league_id: str, year: int):
     return Main.get_per_week_points()
