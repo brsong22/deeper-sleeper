@@ -8,8 +8,8 @@ import ssl
 load_dotenv()
 LEAGUE_ID = os.getenv('LEAGUE_ID')
 cert = ssl.create_default_context(cafile=certifi.where())
-mongo_user = json.loads(os.getenv('MONGO_CREDENTIALS'))['MONGO_USER']
-mongo_pass = json.loads(os.getenv('MONGO_CREDENTIALS'))['MONGO_PASSWORD']
+mongo_user = json.loads(os.getenv('MONGO_USER'))['MONGODB_USER']
+mongo_pass = json.loads(os.getenv('MONGO_PASSWORD'))['MONGODB_PASSWORD']
 
 mongo_connection = os.getenv('MONGO_CONNECTION_STRING').format(mongo_user=mongo_user, mongo_password=mongo_pass)
 mdb = MongoClient(mongo_connection, tls=True, tlsCAFile=certifi.where())

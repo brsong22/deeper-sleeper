@@ -11,9 +11,8 @@ app = FastAPI()
 #     "http://44.212.221.0:3000"
 #     # "https://yourfrontenddomain.com",  # If you have a production frontend
 # ]
-
-origins = [url.strip() for url in os.getenv('ALLOW_ORIGINS').split(',')]
-
+origins = [url.strip().rstrip('/') for url in os.getenv('ALLOW_ORIGINS').split(',')]
+print(origins)
 # Add CORSMiddleware to the FastAPI app
 app.add_middleware(
     CORSMiddleware,
