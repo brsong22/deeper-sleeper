@@ -1,6 +1,13 @@
 import { ResponsiveBar } from '@nivo/bar';
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { LeagueRosterDict, LeagueUserDict } from '../../Types';
+
+type Props = {
+    leagueId: string,
+    rosters: LeagueRosterDict,
+    users: LeagueUserDict
+}
 
 type TeamTransaction = {
     status: string,
@@ -24,7 +31,7 @@ export function WeeklyTransactions({
     leagueId,
     rosters,
     users
-}) {
+}: Props) {
     const API_URL = process.env.REACT_APP_API_URL;
 
     const [transactionTypes, setTransactionTypes] = useState<string[]>([]);

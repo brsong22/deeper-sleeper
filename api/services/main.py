@@ -11,20 +11,14 @@ db = get_db()
 
 def init(year: int, league_id = LEAGUE_ID):
     try:
-        nfl_state = get_nfl_state()
         league_info = get_league_info(year, league_id)
         league_users = get_league_users(year, league_id)
         league_rosters = get_league_rosters(year, league_id)
-        # league_matchups = get_league_matchups(nfl_state['week'])
-        # league_matchups = get_league_matchups(league_info['settings']['playoff_week_start'])
 
         return {
-            'nfl_state': nfl_state,
             'league_info': league_info,
             'league_users': league_users,
             'league_rosters': league_rosters
-            # 'league_matchups': league_matchups[nfl_state['week']]
-            # 'league_matchups': league_matchups[league_info["settings"]["playoff_week_start"]-1]
         }
     except Exception as e:
         print(e)
@@ -79,11 +73,6 @@ def get_league_standings(year: int, league_id: str = LEAGUE_ID):
         league_standings = league_standings['standings']
 
     return league_standings
-
-def get_league_state(year: int, league_id: str = LEAGUE_ID):
-    rosters = get_league_rosters(year, league_id)
-
-    return [roster[1] for roster in sorted(rosters.items(), key=lambda roster: (roster[1]['settings']['wins'], -roster[1]['settings']['losses'], roster[1]['settings']['ties'], roster[1]['settings']['fpts'], roster[1]['settings']['fpts_decimal']), reverse=True)]
     
 def get_per_week_points():
     nfl_state = get_nfl_state()

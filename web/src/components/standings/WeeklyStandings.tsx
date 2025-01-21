@@ -1,15 +1,34 @@
 import { ResponsiveBump } from "@nivo/bump";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import {
+	LeagueUserDict,
+	LeagueRosterDict
+} from '../../Types'
+
+type Props = {
+    leagueId: string,
+    rosters: LeagueRosterDict,
+    users: LeagueUserDict
+}
+
+type WeekStandingData = {
+    x: string,
+    y: number
+}
+type StandingsData = {
+    id: string,
+    data: WeekStandingData[]
+}
 
 export function WeeklyStandings({
     leagueId,
     rosters,
     users
-}) {
+}: Props) {
     const API_URL = process.env.REACT_APP_API_URL;
 
-    const [weeklyStandings, setWeeklyStandings] = useState<any>([]);
+    const [weeklyStandings, setWeeklyStandings] = useState<StandingsData[]>([]);
     
     useEffect(() => {
         try {
