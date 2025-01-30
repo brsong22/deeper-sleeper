@@ -114,3 +114,53 @@ export type SleeperWeeklyStats = {
     overachiever: number,
     underachiever: number
 }
+
+export type DraftData = {
+    draft_id: string,
+    league_id: string,
+    year: string,
+    draft: {
+        created: number,
+        creators: string[],
+        draft_id: string,
+        draft_order: {
+            [key: string]: number
+        },
+        last_message_id: string,
+        last_message_time: number,
+        last_picked: number,
+        league_id: string,
+        metadata: {
+            description: string,
+            name: string,
+            scoring_type: string
+        },
+        season: string,
+        season_type: string,
+        settings: {
+            alpha_sort: number,
+            autopause_enabled: number,
+            autopause_end_time: number,
+            autopause_start_time: number,
+            autostart: number,
+            cpu_autopick: number,
+            nomination_timer: number,
+            pick_timer: number,
+            player_type: number,
+            reversal_round: number,
+            rounds: number,
+            slots_bn: number,
+            slots_flex: number,
+            slots_k: number,
+            slots_qb: number,
+            slots_rb: number,
+            slots_te: number,
+            slots_wr: number,
+            teams: number
+        },
+        sport: string,
+        start_time: number,
+        status: string,
+        type: string
+    }
+}

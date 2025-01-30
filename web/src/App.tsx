@@ -11,6 +11,7 @@ import {
 import WeeklyStandings from './components/standings/WeeklyStandings';
 import WeeklyTransactions from './components/transactions/WeeklyTransactions';
 import LeagueStateTable from './components/leagueState/LeagueStateTable';
+import DraftBoard from './components/draftBoard/DraftBoard';
 
 function App() {
 	const API_URL = process.env.REACT_APP_API_URL;
@@ -72,6 +73,11 @@ function App() {
 						<div className="row-start-4 w-full h-[350px]">
 							<h3>Transaction totals per Team:</h3>
 							<WeeklyTransactions leagueId={LEAGUE_ID} rosters={leagueRosters} users={leagueUsers}/>
+						</div>
+						<br />
+						<div className="row-start-5 w-full h-[350px]">
+							<h3>Draft Results:</h3>
+							<DraftBoard leagueId={LEAGUE_ID} users={leagueUsers} />
 						</div>
 					</>
 				}

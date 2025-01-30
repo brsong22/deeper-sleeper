@@ -46,6 +46,16 @@ def get_league_users(year: int, league_id: str = LEAGUE_ID):
     
     return league_users_by_id
 
+def get_league_drafts(league_id: str = LEAGUE_ID):
+    league_drafts = db['league_drafts'].find({'league_id': league_id}, {'_id': 0})
+
+    return list(league_drafts)
+
+def get_league_draft_picks(draft_id: str, league_id: str = LEAGUE_ID):
+    draft_picks = db['league_draft_picks'].find({'league_id': league_id, 'draft_id': draft_id}, {'_id': 0}).sort('pick_no', 1)
+
+    return list(draft_picks)
+
 def get_league_rosters(year: int, league_id: str = LEAGUE_ID):
     league_rosters_by_id = db['league_rosters'].find_one({'league_id': league_id, 'year': str(year)}, {'_id': 0})
     if league_rosters_by_id is not None:
