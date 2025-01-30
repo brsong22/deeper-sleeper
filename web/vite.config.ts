@@ -14,5 +14,13 @@ export default defineConfig(({ mode }) => {
       port: 3000,
       host: '0.0.0.0'
     },
+    optimizeDeps: {
+      exclude: ['.DS_Store'] // Ignore .DS_Store
+    },
+    build: {
+      rollupOptions: {
+        external: ['.DS_Store'] // Prevent bundling
+      }
+    }
   }
 });
