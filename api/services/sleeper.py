@@ -1,9 +1,8 @@
-from redis_client import redis_client as redis
-from dotenv import load_dotenv
+from api.utils.utils import get_env
 import os
 import requests
 
-load_dotenv()
+get_env()
 SLEEPER_URL = os.getenv('SLEEPER_BASE_URL')
 
 def get_nfl_state():

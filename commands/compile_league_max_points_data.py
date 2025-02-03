@@ -1,13 +1,14 @@
 import argparse
-from services import sleeper, main
+import datetime
+from api.services import sleeper, main
 import copy
-from dotenv import load_dotenv
+from api.utils.utils import get_env
 import os
 import time
-from mongodb_client import get_db
+from api.mongodb_client import get_db
 
 db = get_db()
-load_dotenv()
+get_env()
 LEAGUE_ID = os.getenv('LEAGUE_ID')
 
 parser = argparse.ArgumentParser()
@@ -15,8 +16,8 @@ parser.add_argument('--league', type=str, required=False, default=LEAGUE_ID, hel
 args = parser.parse_args()
 
 def compile_league_max_points(matchups_by_week: dict, rosters: dict, info: dict, league_id: str = LEAGUE_ID):
-    year = league_info['season']
-    positions = league_info['roster_positions']
+    year = info['season']
+    positions = info['roster_positions']
     try:
         league_positions = [position for position in positions if position != 'BN']
         league_max_points = {}
@@ -78,7 +79,17 @@ def compile_league_max_points(matchups_by_week: dict, rosters: dict, info: dict,
                                 max_roster[replace_pos][-1] = p_data
                     league_max_points[week][roster_id]['ppf'] = ppf
                     league_max_points[week][roster_id]['max_roster'] = max_roster
-        doc_id = db['league_max_scores'].update_one({'league_id': LEAGUE_ID, 'year': year}, {'$set': {'max_scores': league_max_points}}, upsert=True)
+        doc_id = db['league_max_scores'].update_one(
+            {
+                'league_id': LEAGUE_ID,
+                'year': year
+            }, 
+            {
+                '$setOnInsert': {'created_at': datetime.datetime.now(datetime.timezone.utc)},
+                '$set': {'max_scores': league_max_points, 'updated_at': datetime.datetime.now(datetime.timezone.utc)}
+            },
+            upsert=True
+        )
     except Exception as e:
         raise Exception(f'Error updating league max points data: {e}')
 

@@ -1,13 +1,14 @@
 import argparse
-from services import sleeper, main
+import datetime
+from api.services import sleeper, main
 import copy
-from dotenv import load_dotenv
+from api.utils.utils import get_env
 import os
 import time
-from mongodb_client import get_db
+from api.mongodb_client import get_db
 
 db = get_db()
-load_dotenv()
+get_env()
 LEAGUE_ID = os.getenv('LEAGUE_ID')
 
 parser = argparse.ArgumentParser()
@@ -36,7 +37,17 @@ def compile_league_standings(matchups_by_week: dict, rosters: dict, year: str, l
                     team_records[team]['losses'] = team_records[team]['losses'] - 1 if result == 'L' else team_records[team]['losses']
                     team_records[team]['points'] = round(team_records[team]['points'] - stats['points'], 2)
             weekly_standings[str(int(week)-1)] = [{roster[0]: roster[1]} for roster in sorted(copy.deepcopy(team_records).items(), key=lambda roster: (roster[1]['wins'], -roster[1]['losses'], roster[1]['points']), reverse=True)]
-        doc_id = db['league_standings'].update_one({'league_id': league_id, 'year': year}, {'$set': {'standings': weekly_standings}}, upsert=True)
+        doc_id = db['league_standings'].update_one(
+            {
+                'league_id': league_id,
+                'year': year
+            }, 
+            {
+                '$setOnInsert': {'created_at': datetime.datetime.now(datetime.timezone.utc)},
+                '$set': {'standings': weekly_standings, 'updated_at': datetime.datetime.now(datetime.timezone.utc)}
+            },
+            upsert=True
+        )
     except Exception as e:
         raise Exception(f'Error updating league standings data: {e}')
 

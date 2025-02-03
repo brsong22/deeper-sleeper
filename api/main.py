@@ -1,9 +1,9 @@
-from dotenv import load_dotenv
+from api.utils.utils import get_env
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import os
-import services.sleeper as Sleeper
-import services.main as Main
+import api.services.sleeper as Sleeper
+import api.services.main as Main
 
 app = FastAPI()
 # origins = [
@@ -22,7 +22,7 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers (Content-Type, Authorization, etc.)
 )
 
-load_dotenv()
+get_env()
 
 @app.get('/healthcheck')
 async def healthstatus():

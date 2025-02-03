@@ -1,13 +1,14 @@
 import argparse
+import datetime
 import time
-from services import sleeper
-from dotenv import load_dotenv
+from api.services import sleeper
+from api.utils.utils import get_env
 from pymongo import UpdateOne
-from mongodb_client import get_db
+from api.mongodb_client import get_db
 import os
 
 db = get_db()
-load_dotenv()
+get_env()
 LEAGUE_ID = os.getenv('LEAGUE_ID')
 
 parser = argparse.ArgumentParser()
@@ -25,7 +26,10 @@ def compile_league_drafts(league_id: str = LEAGUE_ID):
                     'draft_id': draft['draft_id'],
                     'year': draft['season']
                 },
-                {'$set': {'draft': draft}},
+                {
+                    '$setOnInsert': {'created_at': datetime.datetime.now(datetime.timezone.utc)},
+                    '$set': {'draft': draft, 'updated_at': datetime.datetime.now(datetime.timezone.utc)}
+                },
                 True
             )
             draft_docs_ops.append(op)
@@ -37,7 +41,10 @@ def compile_league_drafts(league_id: str = LEAGUE_ID):
                         'draft_id': pick['draft_id'],
                         'pick_no': pick['pick_no']
                     },
-                    {'$set': {'roster_id': pick['roster_id'], 'pick': pick}},
+                    {
+                        '$setOnInsert': {'created_at': datetime.datetime.now(datetime.timezone.utc)},
+                        '$set': {'roster_id': pick['roster_id'], 'pick': pick, 'updated_at': datetime.datetime.now(datetime.timezone.utc)}
+                    },
                     True
                 )
                 draft_pick_docs_ops.append(op)

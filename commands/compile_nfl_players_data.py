@@ -1,13 +1,14 @@
 import argparse
+import datetime
 import time
-from services import sleeper
-from dotenv import load_dotenv
+from api.services import sleeper
+from api.utils.utils import get_env
 from pymongo import UpdateOne
-from mongodb_client import get_db
+from api.mongodb_client import get_db
 import os
 
 db = get_db()
-load_dotenv()
+get_env()
 LEAGUE_ID = os.getenv('LEAGUE_ID')
 
 parser = argparse.ArgumentParser()
@@ -35,6 +36,7 @@ def should_record_player_update(sleeper_player: dict, mongo_player: dict):
         return False
 
 def compile_nfl_players(year: str, week: int):
+    week = 14
     PLAYERS_AGGREGATE = [
         {
             '$group': {
@@ -82,12 +84,15 @@ def compile_nfl_players(year: str, week: int):
             if (p_id not in players_dict or 
                 should_record_player_update(player, players_dict[p_id])):
                 op = UpdateOne({
-                            'id': p_id,
-                            'year': year,
-                            'week': week
-                        },
-                        {'$set': {'player': player}},
-                        True
+                        'id': p_id,
+                        'year': year,
+                        'week': week
+                    },
+                    {
+                        '$setOnInsert': {'created_at': datetime.datetime.now(datetime.timezone.utc)},
+                        '$set': {'player': player, 'updated_at': datetime.datetime.now(datetime.timezone.utc)}
+                    },
+                    True
                 )
                 player_docs_upserts.append(op)
         compare_end = time.time()

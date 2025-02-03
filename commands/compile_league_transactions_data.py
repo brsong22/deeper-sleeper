@@ -1,14 +1,15 @@
 import argparse
+import datetime
 import time
-from services import sleeper
-from utils import utils
-from dotenv import load_dotenv
-from mongodb_client import get_db
+from api.services import sleeper
+from api.utils import utils
+from api.utils.utils import get_env
+from api.mongodb_client import get_db
 from collections import defaultdict
 import os
 
 db = get_db()
-load_dotenv()
+get_env()
 LEAGUE_ID = os.getenv('LEAGUE_ID')
 
 parser = argparse.ArgumentParser()
@@ -28,7 +29,17 @@ def compile_league_transactions(start_week: int, end_week: int, year: str, leagu
                     transactions_by_team[r] = transactions_for_team
             transactions_by_team = utils.convert_keys_to_string(transactions_by_team)
             transactions_by_week[str(week)] = transactions_by_team
-        doc_id = db['league_transactions'].update_one({'league_id': league_id, 'year': year}, {'$set': {'transactions': transactions_by_week}}, upsert=True)
+        doc_id = db['league_transactions'].update_one(
+            {
+                'league_id': league_id,
+                'year': year
+            }, 
+            {
+                '$setOnInsert': {'created_at': datetime.datetime.now(datetime.timezone.utc)},
+                '$set': {'transactions': transactions_by_week, 'updated_at': datetime.datetime.now(datetime.timezone.utc)}
+            },
+            upsert=True
+        )
     except Exception as e:
         raise Exception(f'Error updating league transactions data: {e}')
 

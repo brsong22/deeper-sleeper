@@ -1,10 +1,10 @@
 from collections import defaultdict
-from mongodb_client import get_db
-from dotenv import load_dotenv
+from api.mongodb_client import get_db
+from api.utils.utils import get_env
 import os
-import services.sleeper as Sleeper
+from api.services import sleeper as Sleeper
 
-load_dotenv()
+get_env()
 LEAGUE_ID = os.getenv('LEAGUE_ID')
 
 db = get_db()

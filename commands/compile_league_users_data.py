@@ -1,13 +1,14 @@
 import argparse
+import datetime
 import time
-from utils import utils
-from services import sleeper
-from dotenv import load_dotenv
-from mongodb_client import get_db
+from api.utils import utils
+from api.services import sleeper
+from api.utils.utils import get_env
+from api.mongodb_client import get_db
 import os
 
 db = get_db()
-load_dotenv()
+get_env()
 LEAGUE_ID = os.getenv('LEAGUE_ID')
 
 parser = argparse.ArgumentParser()
@@ -17,7 +18,16 @@ args = parser.parse_args()
 def compile_league_users(year: str, league_id: str = LEAGUE_ID):
     try:
         users = utils.convert_keys_to_string({user['user_id']: user for user in sleeper.get_league_users(league_id)})
-        doc_id = db['league_users'].update_one({'league_id': league_id, 'year': year}, {'$set': {'users': users}}, upsert=True)
+        doc_id = db['league_users'].update_one(
+            {
+                'league_id': league_id, 'year': year
+            }, 
+            {
+                '$setOnInsert': {'created_at': datetime.datetime.now(datetime.timezone.utc)},
+                '$set': {'users': users, 'updated_at': datetime.datetime.now(datetime.timezone.utc)}
+            },
+            upsert=True
+        )
     except Exception as e:
         raise Exception(f'Error updating league users data: {e}')
 

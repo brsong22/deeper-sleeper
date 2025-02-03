@@ -1,12 +1,13 @@
 import argparse
-from services import sleeper
-from dotenv import load_dotenv
-from mongodb_client import get_db
+import datetime
+from api.services import sleeper
+from api.utils.utils import get_env
+from api.mongodb_client import get_db
 import os
 import time
 
 db = get_db()
-load_dotenv()
+get_env()
 LEAGUE_ID = os.getenv('LEAGUE_ID')
 
 parser = argparse.ArgumentParser()
@@ -18,7 +19,17 @@ args = parser.parse_args()
 def compile_league_info(league_id: str = LEAGUE_ID):
     try:
         league_info = sleeper.get_league_info(league_id)
-        doc_id = db['league_info'].update_one({'league_id': league_id, 'year': league_info['season']}, {'$set': {'league': league_info}}, upsert=True)
+        doc_id = db['league_info'].update_one(
+            {
+                'league_id': league_id,
+                'year': league_info['season']
+            },
+            {
+                '$setOnInsert': {'created_at': datetime.datetime.now(datetime.timezone.utc)},
+                '$set': {'league': league_info}
+            },
+            upsert=True
+        )
         return {
             'doc_id': doc_id,
             'league_info': league_info

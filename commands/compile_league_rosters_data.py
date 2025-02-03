@@ -1,13 +1,14 @@
 import argparse
+import datetime
 import time
-from utils import utils
-from services import sleeper
-from dotenv import load_dotenv
-from mongodb_client import get_db
+from api.utils import utils
+from api.services import sleeper
+from api.utils.utils import get_env
+from api.mongodb_client import get_db
 import os
 
 db = get_db()
-load_dotenv()
+get_env()
 LEAGUE_ID = os.getenv('LEAGUE_ID')
 
 parser = argparse.ArgumentParser()
@@ -17,7 +18,17 @@ args = parser.parse_args()
 def compile_league_rosters(year: str, league_id: str = LEAGUE_ID):
     try:
         rosters = utils.convert_keys_to_string({roster['roster_id']: roster for roster in sleeper.get_league_rosters(league_id)})
-        doc_id = db['league_rosters'].update_one({'league_id': LEAGUE_ID, 'year': year}, {'$set': {'rosters': rosters}}, upsert=True)
+        doc_id = db['league_rosters'].update_one(
+            {
+                'league_id': LEAGUE_ID,
+                'year': year
+            }, 
+            {
+                '$setOnInsert': {'created_at': datetime.datetime.now(datetime.timezone.utc)},
+                '$set': {'rosters': rosters, 'updated_at': datetime.datetime.now(datetime.timezone.utc)}
+            },
+            upsert=True
+        )
         return {
             'doc_id': doc_id,
             'rosters': rosters

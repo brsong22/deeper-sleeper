@@ -1,8 +1,8 @@
-from services import sleeper
+from api.services import sleeper
 import argparse
 import copy
 import certifi
-from dotenv import load_dotenv
+from api.utils.utils import get_env
 import json
 import os
 from pymongo import MongoClient, UpdateOne
@@ -16,9 +16,10 @@ from commands.compile_league_matchups_data import compile_league_matchups
 from commands.compile_league_transactions_data import compile_league_transactions
 from commands.compile_league_standings_data import compile_league_standings
 from commands.compile_league_drafts_data import compile_league_drafts
-#! api > python -m commands.compiles_weekly_sleeper_data
+from commands.compile_league_max_points_data import compile_league_max_points
+#! > python -m commands.compile_weekly_sleeper_data
 
-load_dotenv()
+get_env()
 LEAGUE_ID = os.getenv('LEAGUE_ID')
 
 parser = argparse.ArgumentParser()
@@ -32,18 +33,28 @@ def compile_weekly_sleeper_data(update_players: bool, league_id: str = LEAGUE_ID
 
     # update the current status of the league
     try:
-        info = compile_league_info(LEAGUE_ID)
+        print('league info...')
+        info = compile_league_info(league_id)
         year = info['league_info']['season']
         if (update_players):
+            print('nfl players...')
             compile_nfl_players(year)
-        compile_league_users(year, LEAGUE_ID)
-        rosters = compile_league_rosters(year, LEAGUE_ID)
+        print('league users...')
+        compile_league_users(year, league_id)
+        print('league rosters...')
+        rosters = compile_league_rosters(year, league_id)
         start_week = info['league_info']['settings']['start_week']
         end_week = info['league_info']['settings']['playoff_week_start']
-        matchups = compile_league_matchups(start_week, end_week, year, LEAGUE_ID)
-        compile_league_transactions(start_week, end_week, year, LEAGUE_ID)
-        compile_league_standings(matchups['matchups'], rosters['rosters'], year, LEAGUE_ID)
-        compile_league_drafts(LEAGUE_ID)
+        print('league matchups...')
+        matchups = compile_league_matchups(start_week, end_week, year, league_id)
+        print('league transactions...')
+        compile_league_transactions(start_week, end_week, year, league_id)
+        print('league standings...')
+        compile_league_standings(matchups['matchups'], rosters['rosters'], year, league_id)
+        print('league max points...')
+        compile_league_max_points(matchups['matchups'], rosters['rosters'], info['league_info'], league_id)
+        print('league drafts...')
+        compile_league_drafts(league_id)
     except Exception as e:
         print(f'Error compiling data: {e}')
     

@@ -1,3 +1,8 @@
+from dotenv import load_dotenv
+
+def get_env():
+    load_dotenv('/api/.env')
+
 def convert_keys_to_string(d):
     if isinstance(d, dict):
         return {str(k): convert_keys_to_string(v) for k, v in d.items()}

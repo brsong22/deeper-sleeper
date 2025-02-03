@@ -1,14 +1,15 @@
 import argparse
+import datetime
 import time
-from services import sleeper
-from utils import utils
-from dotenv import load_dotenv
-from mongodb_client import get_db
+from api.services import sleeper
+from api.utils import utils
+from api.utils.utils import get_env
+from api.mongodb_client import get_db
 from collections import defaultdict
 import os
 
 db = get_db()
-load_dotenv()
+get_env()
 LEAGUE_ID = os.getenv('LEAGUE_ID')
 
 parser = argparse.ArgumentParser()
@@ -25,7 +26,17 @@ def compile_league_matchups(start_week: int, end_week: int, year: str, league_id
                 matchups_by_id[matchup_team['matchup_id']][matchup_team['roster_id']] = matchup_team
             matchups_by_id = utils.convert_keys_to_string(matchups_by_id)
             matchups_by_week[str(week)] = matchups_by_id
-        doc_id = db['league_matchups'].update_one({'league_id': league_id, 'year': year}, {'$set': {'matchups': matchups_by_week}}, upsert=True)
+        doc_id = db['league_matchups'].update_one(
+            {
+                'league_id': league_id,
+                'year': year
+            }, 
+            {
+                '$setOnInsert': {'created_at': datetime.datetime.now(datetime.timezone.utc)},
+                '$set': {'matchups': matchups_by_week, 'updated_at': datetime.datetime.now(datetime.timezone.utc)}
+            },
+            upsert=True
+        )
         return {
             'doc_id': doc_id,
             'matchups': matchups_by_week
