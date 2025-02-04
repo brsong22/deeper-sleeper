@@ -1,8 +1,7 @@
 import argparse
 import datetime
 import time
-
-from pymongo import UpdateMany
+from pymongo import UpdateMany, UpdateOne
 from api.utils import utils
 from api.services import sleeper
 from api.utils.utils import get_env
@@ -56,20 +55,30 @@ def compile_player_projections(year: str):
                             'source_id': int(source_id),
                             'id': player['id'],
                             'rank': rank,
-                            'year': year,
-                            'created_at': datetime.datetime.now(datetime.timezone.utc),
-                            'updated_at': datetime.datetime.now(datetime.timezone.utc)
+                            'year': year
                         }) 
                     elif len(player_docs) > 1:
-                        multi_match += 1
-                        print(f'multiple matches for {name} ({source}_id: {source_id}) {[p['id'] for p in player_docs]}')
+                        matched_by_source_id = False
+                        for match in player_docs:
+                            if match['player'][f'{source}_id'] == int(source_id):
+                                matched_by_source_id = True
+                                projection_docs.append({
+                                    'source': source,
+                                    'source_id': int(source_id),
+                                    'id': match['id'],
+                                    'rank': rank,
+                                    'year': year
+                                })
+                                break
+                        if not matched_by_source_id:
+                            multi_match += 1
+                            print(f'multiple matches for {name} ({source}_id: {source_id}) {[p['id'] for p in player_docs]}')
                     else:
                         print(f'no match for {source} id [{source_id}] - {name}. trying {name.split(' ')[:2]}')
                         if len(name.split(' ')) > 2:
                             players_projection_data.append(f'{rank}_{source_id}_{" ".join(name.split(' ')[:2])}')
                         else:
                             no_match += 1
-            print(id_mappings)
             print(f'null: {null_id} | multi: {multi_match} | none: {no_match}')
             update_with_source_ids = [
                 UpdateMany(
@@ -82,7 +91,27 @@ def compile_player_projections(year: str):
                 print(f'updating sleeper players with [{source}] ids')
                 doc_ids = db['players'].bulk_write(update_with_source_ids)
             print(f'writing player projections data')
-            doc_ids = db['player_projections'].insert_many(projection_docs)
+            projection_upserts = [
+                UpdateOne(
+                    {
+                        'id': proj['id'],
+                        'year': proj['year'],
+                        'source': proj['source']
+                    },
+                    {
+                        '$setOnInsert': {'created_at': datetime.datetime.now(datetime.timezone.utc)},
+                        '$set': {
+                            'rank': proj['rank'],
+                            'source_id': int(proj['source_id']),
+                            'updated_at': datetime.datetime.now(datetime.timezone.utc)
+                        }
+                    },
+                    True
+                )
+                for proj in projection_docs
+            ]
+            if projection_upserts:
+                doc_ids = db['player_projections'].bulk_write(projection_upserts)
     except Exception as e:
         raise Exception(f'Error updating player projections data: {e}')
 
