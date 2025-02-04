@@ -164,3 +164,45 @@ export type DraftData = {
         type: string
     }
 }
+
+export type DraftPick = {
+    pick_no: number,
+    draft_id: string,
+    league_id: string,
+    pick: {
+        draft_id: string,
+        draft_slot: number,
+        is_keeper: boolean | null,
+        metadata: {
+            first_name: string,
+            injury_status: string,
+            last_name: string,
+            news_updated: string,
+            number: string,
+            player_id: string,
+            position: string,
+            sport: string,
+            status: string,
+            team: string,
+            team_abbr: string,
+            years_exp: string
+        },
+        pick_no: number,
+        picked_by: string,
+        player_id: string,
+        reactions: {[userId: string]: string}[] | null,
+        roster_id: number,
+        round: number
+    },
+    roster_id: number
+}
+
+export type PlayerProjection = {
+    source: string,
+    source_id: number,
+    id: string,
+    rank: string,
+    year: string,
+    created_at: string,
+    updated_at: string
+}

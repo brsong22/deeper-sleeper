@@ -1,26 +1,31 @@
-import { ColDef, ValueGetterParams } from 'ag-grid-community';
+import { ColDef } from 'ag-grid-community';
 import { LeagueUserDict } from '../../Types';
+import { DraftRoundCellRenderer } from './DraftRoundCellRenderer'
+import { DraftPickCellRenderer } from './DraftPickCellRenderer'
 
-export const generateDraftTableColDefs = (users: LeagueUserDict, teamOrder: string[], rowData: any) => {
+export const generateDraftTableColDefs = (users: LeagueUserDict, teamOrder: string[]) => {
     const roundColDef: ColDef[] = [
         {
-            headerName: 'Round / Team',
-            valueGetter: (r: ValueGetterParams) => r.node?.rowIndex != null ? r.node.rowIndex + 1 : '',
-            cellStyle: {
-                textAlign: 'left'
-            },
-            width: 150,
+            headerName: 'Round',
+            cellRenderer: DraftRoundCellRenderer,
+            cellRendererParams: (r: any) => ({
+                row: r.node?.rowIndex
+            }),
+            width: 75,
             sortable: false,
             pinned: 'left'
         }
-    ]
+    ];
+
     const teamColDefs: ColDef[] = teamOrder.map((teamId) => ({
         headerName: users[teamId].display_name,
-        valueGetter: (r: ValueGetterParams) => {
-            return `${r.data[teamId].pick_no}: ${r.data[teamId].pick.metadata.position} - ${r.data[teamId].pick.metadata.first_name} ${r.data[teamId].pick.metadata.last_name}`
-        },
+        cellRenderer: DraftPickCellRenderer,
+        cellRendererParams: (r: any) => ({
+            pick: r.data[teamId].pick,
+            projection: r.data[teamId].projection
+        }),
         cellStyle: {
-            textAlign: 'left'
+            padding: '4px'
         },
         sortable: false
     }));

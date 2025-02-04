@@ -1,16 +1,13 @@
 from api.utils.utils import get_env
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from typing import List
 import os
 import api.services.sleeper as Sleeper
 import api.services.main as Main
 
 app = FastAPI()
-# origins = [
-#     "http://localhost:3000",  # React app running on localhost
-#     "http://44.212.221.0:3000"
-#     # "https://yourfrontenddomain.com",  # If you have a production frontend
-# ]
+
 origins = [url.strip() for url in os.getenv('ALLOW_ORIGINS').split(',')]
 
 # Add CORSMiddleware to the FastAPI app
@@ -26,13 +23,7 @@ get_env()
 
 @app.get('/healthcheck')
 async def healthstatus():
-    # return Main.ping()
     return {"message": 'ok'}
-
-# just for an easy option to clear redis
-# @app.get('/reset')
-# async def clear() -> None:
-#     Main.clear_redis()
 
 @app.get('/league/{league_id}')
 async def init(league_id: str, year: int) -> None:
@@ -64,3 +55,11 @@ async def get_rankings(league_id: str, year: int):
 @app.get('/league/{league_id}/transactions-per-week')
 async def get_transactions_count(league_id: str, year: int):
     return Main.get_league_transactions(year, league_id)
+
+@app.get('/players')
+async def get_players(year: int, week: int, ids: List[str] = Query()):
+    return Main.get_players(ids, year, week)
+
+@app.get('/player-projections')
+async def get_player_projections(year: str, ids: List[str] = Query()):
+    return Main.get_player_projections(ids, year)

@@ -107,7 +107,38 @@ def get_teams_transactions_count():
     nfl_state = get_nfl_state()
     return get_league_transactions(nfl_state['week'])
 
-def get_player(player_id):
-    collection = db['players']
+def get_players(ids: list, year: int, week: int):
+    match_pipeline = [
+        {
+            '$match': {
+                'id': {'$in': ids},
+                '$expr': {
+                    '$lte': [
+                        { '$toInt': '$year' },
+                        year
+                    ]
+                },
+                'week': {'$lte': week}
+            }
+        },
+        {
+            '$sort': {'id': 1, 'year': -1, 'week': -1}
+        },
+        {
+            '$group': {
+                '_id': '$id',
+                'latest_record': {'$first': '$$ROOT'}
+            }
+        },
+        {
+            '$replaceRoot': {'newRoot': '$latest_record'}
+        },
+        {
+            '$project': {'_id': 0}
+        }
+    ]
 
-    return collection.find_one({'player_id': player_id}, {'_id': 0})
+    return list(db['players'].aggregate(match_pipeline))
+
+def get_player_projections(ids: list, year: str):
+    return list(db['player_projections'].find({'id': {'$in': ids}, 'year': year}, {'_id': 0}))

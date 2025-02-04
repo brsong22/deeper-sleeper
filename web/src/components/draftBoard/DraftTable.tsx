@@ -1,45 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
-import { DraftData, LeagueUserDict } from '../../Types';
+import { DraftData, DraftPick, LeagueUserDict, PlayerProjection } from '../../Types';
 import { AgGridReact } from 'ag-grid-react';
 import { generateDraftTableColDefs } from './DraftTableColDefs';
-
-type DraftPick = {
-    pick_no: number,
-    draft_id: string,
-    league_id: string,
-    pick: {
-        draft_id: string,
-        draft_slot: number,
-        is_keeper: boolean | null,
-        metadata: {
-            first_name: string,
-            injury_status: string,
-            last_name: string,
-            news_updated: string,
-            number: string,
-            player_id: string,
-            position: string,
-            sport: string,
-            status: string,
-            team: string,
-            team_abbr: string,
-            years_exp: string
-        },
-        pick_no: number,
-        picked_by: string,
-        player_id: string,
-        reactions: {[userId: string]: string}[] | null,
-        roster_id: number,
-        round: number
-    },
-    roster_id: number
-}
 
 export type DraftPickRowData = {
     round: number;
 } & {
-    [userId: string]: DraftPick | {};
+    [userId: string]: {pick: DraftPick, projection: PlayerProjection} | {};
 }
 
 type Props = {
@@ -55,7 +23,9 @@ export function DraftTable({
 }: Props) {
     const API_URL = process.env.REACT_APP_API_URL;
 
-    const [draftPicksByRound, setDraftPicksByRound] = useState<DraftPickRowData[]>([]);
+    const [draftPicks, setDraftPicks] = useState<DraftPick[]>([]);
+    const [playerProjections, setPlayerProjections] = useState<{[key: string]: PlayerProjection}>({});
+    const [roundsDataReady, setRoundsDataReady] = useState<boolean>(false);
 
     const orderedDraftUsers = useMemo(() => (
         Object.entries(draft.draft.draft_order)
@@ -63,39 +33,75 @@ export function DraftTable({
             .map(entry => entry[0])
     ), [draft]);
 
-    const colDefs = useMemo(() => (
-        generateDraftTableColDefs(users, orderedDraftUsers, draftPicksByRound)
-    ), [orderedDraftUsers, draftPicksByRound, users]);
-
     useEffect(() => {
         axios.get(`${API_URL}/league/${leagueId}/drafts/${draft.draft_id}`)
         .then(response => {
             const picks = response.data;
+            setDraftPicks(picks);
+        })
+    }, [draft, orderedDraftUsers]);
+
+    useEffect(() => {
+        const queryParams = new URLSearchParams();
+        const playerIds: string[] = draftPicks.map((pick) => (pick.pick.player_id))
+        playerIds.forEach(id => queryParams.append('ids', id));
+        queryParams.append('year', draft.year);
+        if (playerIds.length > 0) {
+            axios.get(`${API_URL}/player-projections?${queryParams.toString()}`)
+            .then(response => {
+                const projections: {[id: string]: PlayerProjection} = response.data.reduce((dict: {[id: string]: PlayerProjection}, projection: PlayerProjection) => {
+                    dict[projection['id']] = projection;
+                    
+                    return dict;
+                }, {} as {[id: string]: PlayerProjection});
+                setPlayerProjections(projections);
+            })
+        }
+    }, [draftPicks]);
+
+    const draftPicksByRoundData = useMemo(() => {
+        if (draftPicks.length > 0) {
             const numRounds = draft.draft.settings.rounds;
             const draftRounds: DraftPickRowData[] = Array.from({length: numRounds}, (_, index) => ({
                 round: index + 1,
                 ...orderedDraftUsers.reduce((dict, userId) => {
-                    dict[userId] = {};
-
+                    dict[userId] = {
+                        pick: null,
+                        projection: null
+                    };
+                    
                     return dict;
-                }, {} as {[userId: string]: {}})
+                }, {} as {[userId: string]: {pick: DraftPick | null, projection: PlayerProjection | null}})
             }));
-            picks.forEach((pick: DraftPick) => {
+            
+            draftPicks.forEach((pick: DraftPick) => {
                 const round = pick.pick.round;
                 const user = pick.pick.picked_by;
-                draftRounds[round-1][user] = pick;
+                (draftRounds[round-1][user] as {pick: DraftPick, projection: PlayerProjection})['pick'] = pick;
+                (draftRounds[round-1][user] as {pick: DraftPick, projection: PlayerProjection})['projection'] = playerProjections[pick.pick.player_id];
             });
-            setDraftPicksByRound(draftRounds);
-        })
-    }, [draft, orderedDraftUsers])
+            
+            setRoundsDataReady(true);
+            
+            return draftRounds;
+        }
+    }, [draftPicks, playerProjections]);
+
+    const colDefs = useMemo(() => (
+        generateDraftTableColDefs(users, orderedDraftUsers)
+    ), [users, orderedDraftUsers]);
 
     return (
         <div className="ag-theme-quartz w-full h-[500px]">
-            <AgGridReact
-                rowData={draftPicksByRound}
-                columnDefs={colDefs}
-                columnHoverHighlight
-            />
+            {
+                roundsDataReady &&
+                <AgGridReact
+                    rowHeight={75}
+                    rowData={draftPicksByRoundData}
+                    columnDefs={colDefs}
+                    columnHoverHighlight
+                />
+            }
         </div>
     )
 }
