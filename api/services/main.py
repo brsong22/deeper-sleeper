@@ -142,3 +142,6 @@ def get_players(ids: list, year: int, week: int):
 
 def get_player_projections(ids: list, year: str):
     return list(db['player_projections'].find({'id': {'$in': ids}, 'year': year}, {'_id': 0}))
+
+def get_player_rankings(ids: list, year: str, week: str):
+    return list(db['player_rankings'].find({'id': {'$in': ids}, 'year': year, 'week': week}, {'_id':0}))

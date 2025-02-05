@@ -63,3 +63,7 @@ async def get_players(year: int, week: int, ids: List[str] = Query()):
 @app.get('/player-projections')
 async def get_player_projections(year: str, ids: List[str] = Query()):
     return Main.get_player_projections(ids, year)
+
+@app.get(f'/player-rankings')
+async def get_player_rankings(year: str, week:str, ids: List[str] = Query()):
+    return Main.get_player_rankings(ids, year, week)
