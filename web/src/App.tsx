@@ -55,8 +55,9 @@ function App() {
 			<span>Status: {leagueInfo?.status}</span>
 			<div className="w-full">
 				<div className="row-start-1 w-full">
-					<h3>Week {displayWeek}:</h3>
-					<div className="ag-theme-quartz w-full h-[500px]">
+					<h3>Week {displayWeek}</h3>
+					<h3>League Summary:</h3>
+					<div className="ag-theme-quartz w-full min-h-[250px]">
 						{leagueRosters && leagueUsers &&
 							<LeagueStateTable rosters={leagueRosters} users={leagueUsers}/>}
 					</div>
@@ -64,22 +65,20 @@ function App() {
 				<br />
 				{
 					LEAGUE_ID && leagueRosters && leagueUsers &&
-					<>
-						<div className="row-start-3 w-full h-[350px]">
-							<h3>Standings per Week:</h3>
-							<WeeklyStandings leagueId={LEAGUE_ID} rosters={leagueRosters} users={leagueUsers}/>
-						</div>
-						<br />
-						<div className="row-start-4 w-full h-[350px]">
-							<h3>Transaction totals per Team:</h3>
-							<WeeklyTransactions leagueId={LEAGUE_ID} rosters={leagueRosters} users={leagueUsers}/>
-						</div>
-						<br />
-						<div className="row-start-5 w-full h-[350px]">
+					<div className="flex flex-col w-full h-full row-start-3">
+						<div className="flex-grow w-full min-h-[100px]">
 							<h3>Draft Results:</h3>
 							<DraftBoard leagueId={LEAGUE_ID} users={leagueUsers} />
 						</div>
-					</>
+						<div className="flex-grow w-full h-[350px]">
+							<h3>Standings per Week:</h3>
+							<WeeklyStandings leagueId={LEAGUE_ID} rosters={leagueRosters} users={leagueUsers}/>
+						</div>
+						<div className="flex-grow w-full h-[350px]">
+							<h3>Transaction totals per Team:</h3>
+							<WeeklyTransactions leagueId={LEAGUE_ID} rosters={leagueRosters} users={leagueUsers}/>
+						</div>
+					</div>
 				}
 			</div>
 		</>

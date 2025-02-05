@@ -31,7 +31,7 @@ export function LeagueStateTable({
     }, [rosters, users]);
 
     return (
-        <div className="ag-theme-quartz w-full h-[500px]">
+        <div className="ag-theme-quartz w-full h-[475px]">
             <AgGridReact
                 rowData={rosterRankings}
                 columnDefs={leagueStateColDefs}

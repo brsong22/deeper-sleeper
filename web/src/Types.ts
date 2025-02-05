@@ -206,3 +206,13 @@ export type PlayerProjection = {
     created_at: string,
     updated_at: string
 }
+
+export type PlayerRanking = {
+    id: string,
+    score_type: string,
+    week: string,
+    year: string,
+    created_at: string,
+    rank: string,
+    updated_at: string
+}
