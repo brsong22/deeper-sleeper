@@ -104,7 +104,7 @@ export function DraftTable({
     ), [users, orderedDraftUsers]);
 
     return (
-        <div className="ag-theme-quartz w-full h-[1250px]">
+        <div className="ag-theme-quartz w-full h-[750px]">
             {
                 roundsDataReady &&
                 <AgGridReact

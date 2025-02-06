@@ -35,6 +35,7 @@ export function DraftBoard({
                 return dict;
             }, {} as DraftsByYear);
             setDraftsByYear(draftsByYear);
+            setSelectedDraft(draftsByYear[Object.keys(draftsByYear)[0]])
         })
     }, [])
 
@@ -43,7 +44,6 @@ export function DraftBoard({
             <label>
                 Year: 
                 <select value={selectedDraft?.year} onChange={handleYearChange} name="draftYearSelect" className="ml-2">
-                    <option key='default-0' value=''>Select draft year</option>
                     {
                         Object.values(draftsByYear).map((draft, index) => (
                             <option key={`${draft.year}draft-${index}`} value={draft.year}>

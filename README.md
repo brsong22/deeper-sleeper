@@ -22,8 +22,8 @@ Dive deeper into Sleeper fantasy football league stats
 - [x] Transaction totals
 - [ ] Weekly potential max
 - [ ] Weekly FAAB breakdown
-- [ ] Draft picks
-- [ ] Player draft projections vs. Season Ranking
+- [x] Draft picks
+- [x] Player draft spot vs (adp / Season Ranking)
 - [ ] Sleeper weekly awards summary
 
 **Infrastructure Overview**
