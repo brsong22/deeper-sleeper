@@ -64,6 +64,10 @@ async def get_players(year: int, week: int, ids: List[str] = Query()):
 async def get_player_projections(year: str, ids: List[str] = Query()):
     return Main.get_player_projections(ids, year)
 
-@app.get(f'/player-rankings')
-async def get_player_rankings(year: str, week:str, ids: List[str] = Query()):
+@app.get('/player-rankings')
+async def get_player_rankings(year: str, week: str, ids: List[str] = Query()):
     return Main.get_player_rankings(ids, year, week)
+
+@app.get('/player-adps')
+async def get_player_adps(year: str, ids: List[str] = Query()):
+    return Main.get_player_adps(ids, year)
