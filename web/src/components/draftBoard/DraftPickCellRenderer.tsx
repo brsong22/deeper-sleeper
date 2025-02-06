@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowUpLong, faArrowDownLong, faMinus, faCircle, IconDefinition, faThumbsUp, faThumbsDown } from '@fortawesome/free-solid-svg-icons';
 import { POSITION_COLORS } from "../../constants/positionConsts"
-import { DraftPick, PlayerProjection, PlayerRanking } from '../../Types';
+import { DraftPick, PlayerAdp, PlayerProjection, PlayerRanking } from '../../Types';
 
 const getHeatColor = (actual: number, goal: number) => {
     const difference = actual - goal; // Get the magnitude of difference
@@ -22,27 +22,34 @@ const getHeatColor = (actual: number, goal: number) => {
     }
 };
 
-const projectionStyleHelper = (pick: DraftPick, projection: PlayerProjection): {icon: IconDefinition | null, iconStyle: string} => {
-    if (!projection) {
+const adpStyleHelper = (pick: DraftPick, adp: PlayerAdp): {icon: IconDefinition | null, iconStyle: string} => {
+    if (!adp) {
         return {
             icon: null,
             iconStyle: 'text-yellow-200'
         };
     }
-    else if (parseInt(projection.rank, 10) > pick.pick_no) {
+    // drafted before adp
+    else if (Math.abs(parseInt(adp.adp, 10) - pick.pick_no) > (5)) {
+        if (pick.pick_no == 41) {
+            console.log(`${adp.adp} - ${pick.pick_no} = ${parseInt(adp.adp, 10) - pick.pick_no}`);
+        }
+        const adpIcon = parseInt(adp.adp, 10) < pick.pick_no ? faThumbsUp : faThumbsDown;
         return {
-            icon: faThumbsDown,
-            iconStyle: getHeatColor(pick.pick_no, parseInt(projection.rank, 10))
+            icon: adpIcon,
+            iconStyle: getHeatColor(pick.pick_no, parseInt(adp.adp, 10))
         };
-    } else if (parseInt(projection.rank, 10) < pick.pick_no) {
-        return {
-            icon: faThumbsUp,
-            iconStyle: getHeatColor(pick.pick_no, parseInt(projection.rank, 10))
-        };
+    // // drafted after adp
+    // } else if ((parseInt(adp.adp, 10) - pick.pick_no) > (5)) {
+    //     return {
+    //         icon: faThumbsDown,
+    //         iconStyle: getHeatColor(pick.pick_no, parseInt(adp.adp, 10))
+    //     };
+    // drafted within +/-5
     } else {
         return {
             icon: faMinus,
-            iconStyle: getHeatColor(pick.pick_no, parseInt(projection.rank, 10))
+            iconStyle: getHeatColor(pick.pick_no, parseInt(adp.adp, 10))
         }
     }
 }
@@ -65,7 +72,7 @@ const rankingStyleHelper = (pick: DraftPick, ranking: PlayerRanking): {icon: Ico
             icon: faArrowDownLong,
             iconStyle: getHeatColor(pick.pick_no, parseInt(ranking.rank, 10))
         };
-    // ranked within +/-1 of where they were picked
+    // ranked within +/-5 of where they were picked
     } else {
         return {
             icon: faMinus,
@@ -77,16 +84,18 @@ const rankingStyleHelper = (pick: DraftPick, ranking: PlayerRanking): {icon: Ico
 type Props = {
     pick: DraftPick,
     projection: PlayerProjection,
-    ranking: PlayerRanking
+    ranking: PlayerRanking,
+    adp: PlayerAdp
 }
 
 export function DraftPickCellRenderer({
     pick,
     projection,
-    ranking
+    ranking,
+    adp
 }: Props) {
     const positionBgColor = POSITION_COLORS[pick.pick.metadata.position];
-    const {icon: projIcon, iconStyle: projStyle} = projectionStyleHelper(pick, projection);
+    const {icon: adpIcon, iconStyle: adpStyle} = adpStyleHelper(pick, adp);
     const {icon: rankIcon, iconStyle: rankStyle} = rankingStyleHelper(pick, ranking);
     return (
         <>
@@ -99,9 +108,9 @@ export function DraftPickCellRenderer({
                 </div>
             </div>
             <div className='flex items-center mt-3'>
-                <div className='flex items-center align-middle justify-center text-center text-sm/5 h-5 w-5' style={{color: projStyle}}>
-                    {projIcon &&
-                        <FontAwesomeIcon icon={projIcon} />
+                <div className='flex items-center align-middle justify-center text-center text-sm/5 h-5 w-5' style={{color: adpStyle}}>
+                    {adpIcon &&
+                        <FontAwesomeIcon icon={adpIcon} />
                     }
                 </div>
                 <div className='ml-1 mr-1 flex items-center align-middle justify-center text-center text-md/7 h-7'>

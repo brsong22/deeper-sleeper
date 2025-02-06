@@ -23,7 +23,8 @@ export const generateDraftTableColDefs = (users: LeagueUserDict, teamOrder: stri
         cellRendererParams: (r: any) => ({
             pick: r.data[teamId].pick,
             projection: r.data[teamId].projection,
-            ranking: r.data[teamId].ranking
+            ranking: r.data[teamId].ranking,
+            adp: r.data[teamId].adp
         }),
         cellStyle: {
             padding: '4px'

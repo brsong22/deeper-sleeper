@@ -216,3 +216,12 @@ export type PlayerRanking = {
     rank: string,
     updated_at: string
 }
+
+export type PlayerAdp = {
+    id: string,
+    score_type: string,
+    year: string,
+    created_at: string,
+    adp: string,
+    updated_at: string
+}

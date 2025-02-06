@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
-import { DraftData, DraftPick, LeagueUserDict, PlayerProjection, PlayerRanking } from '../../Types';
+import { DraftData, DraftPick, LeagueUserDict, PlayerAdp, PlayerProjection, PlayerRanking } from '../../Types';
 import { AgGridReact } from 'ag-grid-react';
 import { generateDraftTableColDefs } from './DraftTableColDefs';
 
 export type DraftPickRowData = {
     round: number;
 } & {
-    [userId: string]: {pick: DraftPick, projection: PlayerProjection, ranking: PlayerRanking} | {};
+    [userId: string]: {pick: DraftPick, adp: PlayerAdp, ranking: PlayerRanking} | {};
 }
 
 type Props = {
@@ -24,7 +24,7 @@ export function DraftTable({
     const API_URL = process.env.REACT_APP_API_URL;
 
     const [draftPicks, setDraftPicks] = useState<DraftPick[]>([]);
-    const [playerProjections, setPlayerProjections] = useState<{[key: string]: PlayerProjection}>({});
+    const [playerAdps, setPlayerAdps] = useState<{[key: string]: PlayerAdp}>({});
     const [playerRankings, setPlayerRankings] = useState<{[key: string]: PlayerRanking}>({});
     const [roundsDataReady, setRoundsDataReady] = useState<boolean>(false);
 
@@ -48,14 +48,14 @@ export function DraftTable({
         playerIds.forEach(id => queryParams.append('ids', id));
         queryParams.append('year', draft.year);
         if (playerIds.length > 0) {
-            axios.get(`${API_URL}/player-projections?${queryParams.toString()}`)
+            axios.get(`${API_URL}/player-adps?${queryParams.toString()}`)
             .then(response => {
-                const projections: {[id: string]: PlayerProjection} = response.data.reduce((dict: {[id: string]: PlayerProjection}, projection: PlayerProjection) => {
-                    dict[projection['id']] = projection;
+                const adps: {[id: string]: PlayerAdp} = response.data.reduce((dict: {[id: string]: PlayerAdp}, adp: PlayerAdp) => {
+                    dict[adp['id']] = adp;
                     
                     return dict;
                 }, {} as {[id: string]: PlayerProjection});
-                setPlayerProjections(projections);
+                setPlayerAdps(adps);
             });
             queryParams.append('week', '14');
             axios.get(`${API_URL}/player-rankings?${queryParams.toString()}`)
@@ -88,16 +88,16 @@ export function DraftTable({
             draftPicks.forEach((pick: DraftPick) => {
                 const round = pick.pick.round;
                 const user = pick.pick.picked_by;
-                (draftRounds[round-1][user] as {pick: DraftPick, projection: PlayerProjection, ranking: PlayerRanking})['pick'] = pick;
-                (draftRounds[round-1][user] as {pick: DraftPick, projection: PlayerProjection, ranking: PlayerRanking})['projection'] = playerProjections[pick.pick.player_id];
-                (draftRounds[round-1][user] as {pick: DraftPick, projection: PlayerProjection, ranking: PlayerRanking})['ranking'] = playerRankings[pick.pick.player_id];
+                (draftRounds[round-1][user] as {pick: DraftPick, adp: PlayerAdp, ranking: PlayerRanking})['pick'] = pick;
+                (draftRounds[round-1][user] as {pick: DraftPick, adp: PlayerAdp, ranking: PlayerRanking})['adp'] = playerAdps[pick.pick.player_id];
+                (draftRounds[round-1][user] as {pick: DraftPick, adp: PlayerAdp, ranking: PlayerRanking})['ranking'] = playerRankings[pick.pick.player_id];
             });
             
             setRoundsDataReady(true);
             
             return draftRounds;
         }
-    }, [draftPicks, playerProjections, playerRankings]);
+    }, [draftPicks, playerAdps, playerRankings]);
 
     const colDefs = useMemo(() => (
         generateDraftTableColDefs(users, orderedDraftUsers)
