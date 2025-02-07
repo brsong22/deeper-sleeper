@@ -31,20 +31,11 @@ const adpStyleHelper = (pick: DraftPick, adp: PlayerAdp): {icon: IconDefinition 
     }
     // drafted before adp
     else if (Math.abs(parseInt(adp.adp, 10) - pick.pick_no) > (5)) {
-        if (pick.pick_no == 41) {
-            console.log(`${adp.adp} - ${pick.pick_no} = ${parseInt(adp.adp, 10) - pick.pick_no}`);
-        }
         const adpIcon = parseInt(adp.adp, 10) < pick.pick_no ? faThumbsUp : faThumbsDown;
         return {
             icon: adpIcon,
             iconStyle: getHeatColor(pick.pick_no, parseInt(adp.adp, 10))
         };
-    // // drafted after adp
-    // } else if ((parseInt(adp.adp, 10) - pick.pick_no) > (5)) {
-    //     return {
-    //         icon: faThumbsDown,
-    //         iconStyle: getHeatColor(pick.pick_no, parseInt(adp.adp, 10))
-    //     };
     // drafted within +/-5
     } else {
         return {

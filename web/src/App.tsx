@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import './App.css'
 import 'ag-grid-community/styles/ag-grid.css'; // Mandatory CSS required by the Data Grid
@@ -12,6 +12,7 @@ import WeeklyStandings from './components/standings/WeeklyStandings';
 import WeeklyTransactions from './components/transactions/WeeklyTransactions';
 import LeagueStateTable from './components/leagueState/LeagueStateTable';
 import DraftBoard from './components/draftBoard/DraftBoard';
+import StandingsSnapshot from './components/snapshots/StandingsSnapshot';
 
 function App() {
 	const API_URL = process.env.REACT_APP_API_URL;
@@ -21,7 +22,7 @@ function App() {
 	const [displayWeek, setDisplayWeek] = useState<number>(0);
 	const [leagueUsers, setLeagueUsers] = useState<LeagueUserDict>();
 	const [leagueRosters, setLeagueRosters] = useState<LeagueRosterDict>();
-
+	
 	useEffect(() => {
 		if (LEAGUE_ID) {
 			try {
@@ -48,39 +49,45 @@ function App() {
 			}
 		}
 	}, [API_URL, LEAGUE_ID]);
+
+	const bannerColor = useMemo(() => {
+		switch (leagueInfo?.status) {
+			case 'drafting':
+				return '#ffed33';
+			case 'in_season':
+				return ' #1ce518 ';
+			default:
+				return '#cccccc';
+		}
+	}, [leagueInfo]);
 	
 	return (
 		<>
-			<h1><strong>{leagueInfo?.name}</strong></h1>
-			<span>Status: {leagueInfo?.status}</span>
-			<div className="w-full">
-				<div className="row-start-1 w-full">
-					<h3>Week {displayWeek}</h3>
-					<h3>League Summary:</h3>
-					<div className="ag-theme-quartz w-full min-h-[250px]">
-						{leagueRosters && leagueUsers &&
-							<LeagueStateTable rosters={leagueRosters} users={leagueUsers}/>}
+			{
+				leagueInfo && leagueRosters && leagueUsers &&
+				<div>
+					<div className='pl-5 w-full h-20 items-center text-lg flex justify-start gap-x-10' style={{ backgroundColor: bannerColor }}>
+						<span>League: <strong>{leagueInfo?.name}</strong> ({leagueInfo?.league_id})</span>
+						<span>Status: <strong>{leagueInfo?.status}</strong></span>
+						<span>Week: <strong>{displayWeek}</strong></span>
+					</div>
+					<div className='p-2 grid gap-y-3'>
+						<div className='mt-2 w-full flex justify-start gap-x-5'>
+							<div className='w-[225px] h-[177px]'>
+								<StandingsSnapshot leagueId={leagueInfo.league_id} week={displayWeek} rosters={leagueRosters} users={leagueUsers} />
+							</div>
+						</div>
+						<div className="w-full border-t-2 border-gray-200">
+							<div className="flex flex-col w-full h-full row-start-3">
+								<DraftBoard leagueId={leagueInfo.league_id} users={leagueUsers} />
+								<LeagueStateTable rosters={leagueRosters} users={leagueUsers}/>
+								<WeeklyStandings leagueId={leagueInfo.league_id} rosters={leagueRosters} users={leagueUsers}/>
+								<WeeklyTransactions leagueId={leagueInfo.league_id} rosters={leagueRosters} users={leagueUsers}/>
+							</div>
+						</div>
 					</div>
 				</div>
-				<br />
-				{
-					LEAGUE_ID && leagueRosters && leagueUsers &&
-					<div className="flex flex-col w-full h-full row-start-3">
-						<div className="flex-grow w-full min-h-[100px]">
-							<h3>Draft Results:</h3>
-							<DraftBoard leagueId={LEAGUE_ID} users={leagueUsers} />
-						</div>
-						<div className="flex-grow w-full h-[350px]">
-							<h3>Standings per Week:</h3>
-							<WeeklyStandings leagueId={LEAGUE_ID} rosters={leagueRosters} users={leagueUsers}/>
-						</div>
-						<div className="flex-grow w-full h-[350px]">
-							<h3>Transaction totals per Team:</h3>
-							<WeeklyTransactions leagueId={LEAGUE_ID} rosters={leagueRosters} users={leagueUsers}/>
-						</div>
-					</div>
-				}
-			</div>
+			}
 		</>
 	)
 }

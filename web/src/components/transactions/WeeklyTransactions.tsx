@@ -1,7 +1,9 @@
 import { ResponsiveBar } from '@nivo/bar';
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LeagueRosterDict, LeagueUserDict } from '../../Types';
+import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 type Props = {
     leagueId: string,
@@ -36,6 +38,9 @@ export function WeeklyTransactions({
 
     const [transactionTypes, setTransactionTypes] = useState<string[]>([]);
     const [teamTransactionTotals, setTeamTransactionTotals] = useState<TeamTransactionsData[]>([]);
+    const [isTransactionsVisible, setIsTransactionsVisible] = useState<boolean>(false);
+	const [transactionsMaxHeight, setTransactionsMaxHeight] = useState<string>('0px');
+    const contentRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         try {
@@ -87,94 +92,119 @@ export function WeeklyTransactions({
         } else {
             setTransactionTypes(prevTypes => [...prevTypes, 'failed']);
         }
-    }
+    };
+
+    useEffect(() => {
+        if (contentRef.current) {
+            setTransactionsMaxHeight(isTransactionsVisible ? `${contentRef.current.scrollHeight}px` : "0px");
+        }
+    }, [isTransactionsVisible]);
+
     return (
-        <>
-            <div className="flex items-center justify-between w-64">
-                <span className="text-sm font-semibold text-gray-800">Include Failed Waivers</span>
-                <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" onChange={handleToggle}/>
-                    <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-400 peer-checked:bg-green-600"></div>
-                    <div className="absolute left-0.5 top-0.5 w-5 h-5 bg-white border border-gray-300 rounded-full transition-transform peer-checked:translate-x-full"></div>
-                </label>
+        <div className='w-full border-b-2 border-gray-200'>
+            <div
+                onClick={() => setIsTransactionsVisible(!isTransactionsVisible)}
+                className={`w-1/6 flex justify-between items-center cursor-pointer py-2 pointer-events-auto ${isTransactionsVisible ? 'bg-gradient-to-r from-yellow-200 to-white' : 'hover:bg-gradient-to-r from-yellow-200 to-white'}`}
+                    >
+                <strong>Transactions per Team</strong> {<FontAwesomeIcon
+                    icon={faChevronDown}
+                    className={`ml-2 transform transition-transform duration-500
+                        ${isTransactionsVisible ? "-rotate-180" : "rotate-0"}`}/>
+                }
             </div>
-            <ResponsiveBar
-                data={teamTransactionTotals}
-                keys={transactionTypes}
-                indexBy="id"
-                margin={{ top: 50, right: 130, bottom: 50, left: 60 }}
-                padding={0.3}
-                valueScale={{ type: 'linear' }}
-                indexScale={{ type: 'band', round: true }}
-                colors={{ scheme: 'tableau10' }}
-                borderColor={{
-                    from: 'color',
-                    modifiers: [
-                        [
-                            'darker',
-                            1.6
-                        ]
-                    ]
-                }}
-                axisTop={null}
-                axisRight={null}
-                axisBottom={{
-                    tickSize: 5,
-                    tickPadding: 5,
-                    tickRotation: 0,
-                    legend: 'Team',
-                    legendPosition: 'middle',
-                    legendOffset: 32,
-                    truncateTickAt: 0
-                }}
-                axisLeft={{
-                    tickSize: 5,
-                    tickPadding: 5,
-                    tickRotation: 0,
-                    legend: 'Transactions',
-                    legendPosition: 'middle',
-                    legendOffset: -40,
-                    truncateTickAt: 0
-                }}
-                labelSkipWidth={12}
-                labelSkipHeight={12}
-                labelTextColor={{
-                    from: 'color',
-                    modifiers: [
-                        [
-                            'darker',
-                            1.6
-                        ]
-                    ]
-                }}
-                legends={[
-                    {
-                        dataFrom: 'keys',
-                        anchor: 'bottom-right',
-                        direction: 'column',
-                        justify: false,
-                        translateX: 120,
-                        translateY: 0,
-                        itemsSpacing: 2,
-                        itemWidth: 100,
-                        itemHeight: 20,
-                        itemDirection: 'left-to-right',
-                        itemOpacity: 0.85,
-                        symbolSize: 20,
-                        effects: [
+            <div
+                ref={contentRef}
+                className="overflow-hidden transition-all duration-300 ease-in-out"
+                style={{ maxHeight: transactionsMaxHeight }}
+            >
+                <div className="flex-grow w-full h-[350px]">
+                    <div className="flex items-center justify-between w-64">
+                        <span className="text-sm font-semibold text-gray-800">Include Failed Waivers</span>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" className="sr-only peer" onChange={handleToggle}/>
+                            <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-400 peer-checked:bg-green-600"></div>
+                            <div className="absolute left-0.5 top-0.5 w-5 h-5 bg-white border border-gray-300 rounded-full transition-transform peer-checked:translate-x-full"></div>
+                        </label>
+                    </div>
+                    <ResponsiveBar
+                        data={teamTransactionTotals}
+                        keys={transactionTypes}
+                        indexBy="id"
+                        margin={{ top: 50, right: 130, bottom: 50, left: 60 }}
+                        padding={0.3}
+                        valueScale={{ type: 'linear' }}
+                        indexScale={{ type: 'band', round: true }}
+                        colors={{ scheme: 'tableau10' }}
+                        borderColor={{
+                            from: 'color',
+                            modifiers: [
+                                [
+                                    'darker',
+                                    1.6
+                                ]
+                            ]
+                        }}
+                        axisTop={null}
+                        axisRight={null}
+                        axisBottom={{
+                            tickSize: 5,
+                            tickPadding: 5,
+                            tickRotation: 0,
+                            legend: 'Team',
+                            legendPosition: 'middle',
+                            legendOffset: 32,
+                            truncateTickAt: 0
+                        }}
+                        axisLeft={{
+                            tickSize: 5,
+                            tickPadding: 5,
+                            tickRotation: 0,
+                            legend: 'Transactions',
+                            legendPosition: 'middle',
+                            legendOffset: -40,
+                            truncateTickAt: 0
+                        }}
+                        labelSkipWidth={12}
+                        labelSkipHeight={12}
+                        labelTextColor={{
+                            from: 'color',
+                            modifiers: [
+                                [
+                                    'darker',
+                                    1.6
+                                ]
+                            ]
+                        }}
+                        legends={[
                             {
-                                on: 'hover',
-                                style: {
-                                    itemOpacity: 1
-                                }
+                                dataFrom: 'keys',
+                                anchor: 'bottom-right',
+                                direction: 'column',
+                                justify: false,
+                                translateX: 120,
+                                translateY: 0,
+                                itemsSpacing: 2,
+                                itemWidth: 100,
+                                itemHeight: 20,
+                                itemDirection: 'left-to-right',
+                                itemOpacity: 0.85,
+                                symbolSize: 20,
+                                effects: [
+                                    {
+                                        on: 'hover',
+                                        style: {
+                                            itemOpacity: 1
+                                        }
+                                    }
+                                ]
                             }
-                        ]
-                    }
-                ]}
-                enableTotals
-                role="application"
-            />
-        </>
+                        ]}
+                        enableTotals
+                        role="application"
+                    />
+                </div>
+            </div>
+        </div>
     )
 }
 

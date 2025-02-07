@@ -1,10 +1,12 @@
 import { ResponsiveBump } from "@nivo/bump";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
 	LeagueUserDict,
 	LeagueRosterDict
 } from '../../Types'
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 type Props = {
     leagueId: string,
@@ -29,6 +31,10 @@ export function WeeklyStandings({
     const API_URL = process.env.REACT_APP_API_URL;
 
     const [weeklyStandings, setWeeklyStandings] = useState<StandingsData[]>([]);
+    const [isStandingsVisible, setIsStandingsVisible] = useState<boolean>(false);
+	const [standingsMaxHeight, setStandingsMaxHeight] = useState<string>('0px');
+
+    const contentRef = useRef<HTMLDivElement>(null);
     
     useEffect(() => {
         try {
@@ -79,56 +85,82 @@ export function WeeklyStandings({
         }
     }, [API_URL, leagueId, rosters, users]);
 
+    useEffect(() => {
+		if (contentRef.current) {
+		  setStandingsMaxHeight(isStandingsVisible ? `${contentRef.current.scrollHeight}px` : "0px");
+		}
+	}, [isStandingsVisible]);
+
     return (
-        <ResponsiveBump
-            data={weeklyStandings}
-            colors={{ scheme: 'tableau10' }}
-            lineWidth={3}
-            activeLineWidth={6}
-            inactiveLineWidth={3}
-            inactiveOpacity={0.15}
-            pointSize={10}
-            activePointSize={16}
-            inactivePointSize={0}
-            pointColor={{ theme: 'background' }}
-            pointBorderWidth={3}
-            activePointBorderWidth={3}
-            pointBorderColor={{ from: 'serie.color' }}
-            axisTop={{
-                tickSize: 5,
-                tickPadding: 5,
-                tickRotation: 0,
-                legend: '',
-                legendPosition: 'middle',
-                legendOffset: -36,
-                truncateTickAt: 0
-            }}
-            axisBottom={{
-                tickSize: 5,
-                tickPadding: 5,
-                tickRotation: 0,
-                legend: 'week',
-                legendPosition: 'middle',
-                legendOffset: 32,
-                truncateTickAt: 0
-            }}
-            axisLeft={{
-                tickSize: 5,
-                tickPadding: 5,
-                tickRotation: 0,
-                legend: 'standing',
-                legendPosition: 'middle',
-                legendOffset: -40,
-                truncateTickAt: 0
-            }}
-            axisRight={{
-                tickSize: 5,
-                tickPadding: 5,
-                tickRotation: 0,
-                truncateTickAt: 0
-            }}
-            margin={{ top: 40, right: 100, bottom: 40, left: 60 }}
-        />
+        <div className='w-full border-b-2 border-gray-200'>
+            <div
+                onClick={() => setIsStandingsVisible(!isStandingsVisible)}
+                className={`w-1/6 flex justify-between items-center cursor-pointer py-2 pointer-events-auto ${isStandingsVisible ? 'bg-gradient-to-r from-yellow-200 to-white' : 'hover:bg-gradient-to-r from-yellow-200 to-white'}`}
+                    >
+                <strong>Standings by Week</strong> {<FontAwesomeIcon
+                    icon={faChevronDown}
+                    className={`ml-2 transform transition-transform duration-500
+                        ${isStandingsVisible ? "-rotate-180" : "rotate-0"}`}/>
+                }
+            </div>
+            <div
+                ref={contentRef}
+                className="overflow-hidden transition-all duration-300 ease-in-out"
+                style={{ maxHeight: standingsMaxHeight }}
+            >
+                <div className="flex-grow w-full h-[350px]">
+                    <ResponsiveBump
+                        data={weeklyStandings}
+                        colors={{ scheme: 'tableau10' }}
+                        lineWidth={3}
+                        activeLineWidth={6}
+                        inactiveLineWidth={3}
+                        inactiveOpacity={0.15}
+                        pointSize={10}
+                        activePointSize={16}
+                        inactivePointSize={0}
+                        pointColor={{ theme: 'background' }}
+                        pointBorderWidth={3}
+                        activePointBorderWidth={3}
+                        pointBorderColor={{ from: 'serie.color' }}
+                        axisTop={{
+                            tickSize: 5,
+                            tickPadding: 5,
+                            tickRotation: 0,
+                            legend: '',
+                            legendPosition: 'middle',
+                            legendOffset: -36,
+                            truncateTickAt: 0
+                        }}
+                        axisBottom={{
+                            tickSize: 5,
+                            tickPadding: 5,
+                            tickRotation: 0,
+                            legend: 'week',
+                            legendPosition: 'middle',
+                            legendOffset: 32,
+                            truncateTickAt: 0
+                        }}
+                        axisLeft={{
+                            tickSize: 5,
+                            tickPadding: 5,
+                            tickRotation: 0,
+                            legend: 'standing',
+                            legendPosition: 'middle',
+                            legendOffset: -40,
+                            truncateTickAt: 0
+                        }}
+                        axisRight={{
+                            tickSize: 5,
+                            tickPadding: 5,
+                            tickRotation: 0,
+                            truncateTickAt: 0
+                        }}
+                        margin={{ top: 40, right: 100, bottom: 40, left: 60 }}
+                    />
+                </div>
+            </div>
+        </div>
     )
 }
 

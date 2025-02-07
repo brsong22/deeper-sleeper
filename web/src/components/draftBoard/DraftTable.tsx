@@ -13,13 +13,15 @@ export type DraftPickRowData = {
 type Props = {
     leagueId: string,
     draft: DraftData,
-    users: LeagueUserDict
+    users: LeagueUserDict,
+    onRendered: () => void
 }
 
 export function DraftTable({
     leagueId,
     draft,
-    users
+    users,
+    onRendered
 }: Props) {
     const API_URL = process.env.REACT_APP_API_URL;
 
@@ -102,6 +104,10 @@ export function DraftTable({
     const colDefs = useMemo(() => (
         generateDraftTableColDefs(users, orderedDraftUsers)
     ), [users, orderedDraftUsers]);
+
+    useEffect(() => {
+        onRendered()
+    }, []);
 
     return (
         <div className="ag-theme-quartz w-full h-[750px]">
