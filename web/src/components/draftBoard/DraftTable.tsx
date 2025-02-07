@@ -3,11 +3,24 @@ import axios from 'axios';
 import { DraftData, DraftPick, LeagueUserDict, PlayerAdp, PlayerProjection, PlayerRanking } from '../../Types';
 import { AgGridReact } from 'ag-grid-react';
 import { generateDraftTableColDefs } from './DraftTableColDefs';
+import { Tooltip } from 'react-tooltip';
+import DraftPickCellAdpTooltip from './DraftPickCellAdpTooltip';
+import DraftPickCellRankTooltip from './DraftPickCellRankTooltip';
 
-export type DraftPickRowData = {
+type DraftPickRowData = {
     round: number;
 } & {
     [userId: string]: {pick: DraftPick, adp: PlayerAdp, ranking: PlayerRanking} | {};
+}
+
+export type AdpTooltipData = {
+    adp: number,
+    pick: number
+}
+
+export type RankTooltipData = {
+    rank: number,
+    pick: number
 }
 
 type Props = {
@@ -29,6 +42,15 @@ export function DraftTable({
     const [playerAdps, setPlayerAdps] = useState<{[key: string]: PlayerAdp}>({});
     const [playerRankings, setPlayerRankings] = useState<{[key: string]: PlayerRanking}>({});
     const [roundsDataReady, setRoundsDataReady] = useState<boolean>(false);
+    const [adpTooltipData, setAdpTooltipData] = useState<AdpTooltipData>({adp: 0, pick: 0});
+    const [rankTooltipData, setRankTooltipData] = useState<RankTooltipData>({rank: 0, pick: 0});
+
+    const handleAdpTooltipData = (data: AdpTooltipData) => {
+        setAdpTooltipData(data);
+    }
+    const handleRankTooltipData = (data: RankTooltipData) => {
+        setRankTooltipData(data);
+    }
 
     const orderedDraftUsers = useMemo(() => (
         Object.entries(draft.draft.draft_order)
@@ -102,7 +124,7 @@ export function DraftTable({
     }, [draftPicks, playerAdps, playerRankings]);
 
     const colDefs = useMemo(() => (
-        generateDraftTableColDefs(users, orderedDraftUsers)
+        generateDraftTableColDefs(users, orderedDraftUsers, handleAdpTooltipData, handleRankTooltipData)
     ), [users, orderedDraftUsers]);
 
     useEffect(() => {
@@ -120,6 +142,8 @@ export function DraftTable({
                     columnHoverHighlight
                 />
             }
+            <Tooltip id='adpIconTooltip' place='left' render={() => <DraftPickCellAdpTooltip adpData={adpTooltipData}/>}/>
+            <Tooltip id='rankIconTooltip' place='right' render={() => <DraftPickCellRankTooltip rankData={rankTooltipData}/>}/>
         </div>
     )
 }

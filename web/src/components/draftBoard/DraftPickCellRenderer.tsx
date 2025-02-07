@@ -1,22 +1,23 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowUpLong, faArrowDownLong, faMinus, faCircle, IconDefinition, faThumbsUp, faThumbsDown } from '@fortawesome/free-solid-svg-icons';
+import { faArrowUpLong, faArrowDownLong, faMinus, IconDefinition, faThumbsUp, faThumbsDown } from '@fortawesome/free-solid-svg-icons';
 import { POSITION_COLORS } from "../../constants/positionConsts"
 import { DraftPick, PlayerAdp, PlayerProjection, PlayerRanking } from '../../Types';
+import { AdpTooltipData, RankTooltipData } from './DraftTable';
+import { useEffect } from 'react';
 
 const getHeatColor = (actual: number, goal: number) => {
-    const difference = actual - goal; // Get the magnitude of difference
-    const maxDifference = 25; // Define a max difference threshold for scaling
+    const difference = actual - goal;
+    const maxDifference = 25;
     const normalized = Math.min(Math.abs(difference) / maxDifference, 1); // Normalize between 0 and 1
 
     // Map normalized difference to a hue value (120 = green, 40 = yellow, 0 = red)
-    // Use different hues for positive vs. negative differences
     if (difference >= 0) {
-        // Positive Difference: Yellow (40°) to Green (120°)
+        // Positive Difference: Yellow (40) to Green (120)
         const hue = 40 + normalized * (120 - 40); 
         return `hsl(${hue}, 100%, 45%)`;
 
     } else {
-        // Negative Difference: Yellow (40°) to Red (0°)
+        // Negative Difference: Yellow (40) to Red (0)
         const hue = 40 - normalized * 40; 
         return `hsl(${hue}, 100%, 45%)`;
     }
@@ -76,18 +77,35 @@ type Props = {
     pick: DraftPick,
     projection: PlayerProjection,
     ranking: PlayerRanking,
-    adp: PlayerAdp
+    adp: PlayerAdp,
+    handleAdpData: (data: AdpTooltipData) => void,
+    handleRankData: (data: RankTooltipData) => void
 }
 
 export function DraftPickCellRenderer({
     pick,
     projection,
     ranking,
-    adp
+    adp,
+    handleAdpData,
+    handleRankData
 }: Props) {
     const positionBgColor = POSITION_COLORS[pick.pick.metadata.position];
     const {icon: adpIcon, iconStyle: adpStyle} = adpStyleHelper(pick, adp);
     const {icon: rankIcon, iconStyle: rankStyle} = rankingStyleHelper(pick, ranking);
+    
+    useEffect(() => {
+        if (adp) {
+            handleAdpData({adp: parseInt(adp.adp, 10), pick: pick.pick_no});
+        }
+    }, [pick, adp, handleAdpData]);
+    
+    useEffect(() => {
+        if (ranking) {
+            handleRankData({rank: parseInt(ranking.rank, 10), pick: pick.pick_no});
+        }
+    }, [pick, ranking, handleRankData]);
+    
     return (
         <>
             <div className='flex'>
@@ -101,7 +119,7 @@ export function DraftPickCellRenderer({
             <div className='flex items-center mt-3'>
                 <div className='flex items-center align-middle justify-center text-center text-sm/5 h-5 w-5' style={{color: adpStyle}}>
                     {adpIcon &&
-                        <FontAwesomeIcon icon={adpIcon} />
+                            <FontAwesomeIcon icon={adpIcon} data-tooltip-id='adpIconTooltip' onMouseEnter={() => handleAdpData({adp: parseInt(adp.adp, 10), pick: pick.pick_no})}/>
                     }
                 </div>
                 <div className='ml-1 mr-1 flex items-center align-middle justify-center text-center text-md/7 h-7'>
@@ -109,7 +127,7 @@ export function DraftPickCellRenderer({
                 </div>
                 <div className='flex items-center align-middle justify-center text-center text-sm/5 h-5 w-5' style={{color: rankStyle}}>
                     {rankIcon &&
-                        <FontAwesomeIcon icon={rankIcon} />
+                        <FontAwesomeIcon icon={rankIcon} data-tooltip-id='rankIconTooltip' onMouseEnter={() => handleRankData({rank: parseInt(ranking.rank, 10), pick: pick.pick_no})}/>
                     }
                 </div>
             </div>
