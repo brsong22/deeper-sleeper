@@ -13,10 +13,10 @@ get_env()
 LEAGUE_ID = os.getenv('LEAGUE_ID')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--league', type=str, required=False, default=LEAGUE_ID, help='league id')
+parser.add_argument('--league', type=str, required=True, help='league id')
 args = parser.parse_args()
 
-def compile_league_playoff_bracket(year: str, league_id: str = LEAGUE_ID):
+def compile_league_playoff_bracket(year: str, league_id: str):
     try:
         playoff_brackets = sleeper.get_league_playoffs_bracket(league_id)
         doc_id = db['league_playoff_brackets'].update_one(

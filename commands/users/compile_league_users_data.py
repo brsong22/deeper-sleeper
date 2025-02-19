@@ -12,10 +12,10 @@ get_env()
 LEAGUE_ID = os.getenv('LEAGUE_ID')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--league', type=str, required=False, default=LEAGUE_ID, help='league id')
+parser.add_argument('--league', type=str, required=True, help='league id')
 args = parser.parse_args()
 
-def compile_league_users(year: str, league_id: str = LEAGUE_ID):
+def compile_league_users(year: str, league_id: str):
     try:
         users = utils.convert_keys_to_string({user['user_id']: user for user in sleeper.get_league_users(league_id)})
         doc_id = db['league_users'].update_one(

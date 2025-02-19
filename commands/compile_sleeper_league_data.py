@@ -24,11 +24,11 @@ get_env()
 LEAGUE_ID = os.getenv('LEAGUE_ID')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--league', type=str, required=False, default=LEAGUE_ID, help='league id')
+parser.add_argument('--league', type=str, required=True, help='league id')
 parser.add_argument('--players', action='store_true', help='include flag to update players data')
 args = parser.parse_args()
 
-def compile_weekly_sleeper_data(update_players: bool, league_id: str = LEAGUE_ID):
+def compile_weekly_sleeper_data(update_players: bool, league_id: str):
     nfl_state = sleeper.get_nfl_state()
     year = nfl_state['season']
 

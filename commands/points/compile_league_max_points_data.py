@@ -12,10 +12,10 @@ get_env()
 LEAGUE_ID = os.getenv('LEAGUE_ID')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--league', type=str, required=False, default=LEAGUE_ID, help='league id')
+parser.add_argument('--league', type=str, required=True, help='league id')
 args = parser.parse_args()
 
-def compile_league_max_points(matchups_by_week: dict, rosters: dict, info: dict, league_id: str = LEAGUE_ID):
+def compile_league_max_points(matchups_by_week: dict, rosters: dict, info: dict, league_id: str):
     year = info['season']
     positions = info['roster_positions']
     try:
@@ -81,7 +81,7 @@ def compile_league_max_points(matchups_by_week: dict, rosters: dict, info: dict,
                     league_max_points[week][roster_id]['max_roster'] = max_roster
         doc_id = db['league_max_scores'].update_one(
             {
-                'league_id': LEAGUE_ID,
+                'league_id': league_id,
                 'year': year
             }, 
             {

@@ -13,10 +13,10 @@ get_env()
 LEAGUE_ID = os.getenv('LEAGUE_ID')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--league', type=str, required=False, default=LEAGUE_ID, help='league id')
+parser.add_argument('--league', type=str, required=True, help='league id')
 args = parser.parse_args()
 
-def compile_league_transactions(start_week: int, end_week: int, year: str, league_id: str = LEAGUE_ID):
+def compile_league_transactions(start_week: int, end_week: int, year: str, league_id: str):
     try:
         transactions_by_week = {}
         for week in range(start_week, end_week):

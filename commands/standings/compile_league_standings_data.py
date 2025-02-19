@@ -12,10 +12,10 @@ get_env()
 LEAGUE_ID = os.getenv('LEAGUE_ID')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--league', type=str, required=False, default=LEAGUE_ID, help='league id')
+parser.add_argument('--league', type=str, required=True, help='league id')
 args = parser.parse_args()
 
-def compile_league_standings(matchups_by_week: dict, rosters: dict, year: str, league_id: str = LEAGUE_ID):
+def compile_league_standings(matchups_by_week: dict, rosters: dict, year: str, league_id: str):
     try:
         team_records = {}
         for roster, data in rosters.items():

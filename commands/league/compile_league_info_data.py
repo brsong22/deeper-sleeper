@@ -11,12 +11,12 @@ get_env()
 LEAGUE_ID = os.getenv('LEAGUE_ID')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--league', type=str, required=False, default=LEAGUE_ID, help='league id')
+parser.add_argument('--league', type=str, required=True, help='league id')
 # shouldn't actually accept years because sleeper only provides the current year's data
 # parser.add_argument('--years', nargs='*', type=int, required=False, default=[], hint='years to compile league info for')
 args = parser.parse_args()
 
-def compile_league_info(league_id: str = LEAGUE_ID):
+def compile_league_info(league_id: str):
     try:
         league_info = sleeper.get_league_info(league_id)
         doc_id = db['league_info'].update_one(

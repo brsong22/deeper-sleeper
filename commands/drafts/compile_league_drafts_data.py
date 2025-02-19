@@ -12,10 +12,10 @@ get_env()
 LEAGUE_ID = os.getenv('LEAGUE_ID')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--league', type=str, required=False, default=LEAGUE_ID, help='sleeper league id')
+parser.add_argument('--league', type=str, required=True, help='sleeper league id')
 args = parser.parse_args()
 
-def compile_league_drafts(league_id: str = LEAGUE_ID):
+def compile_league_drafts(league_id: str):
     try:
         drafts = sleeper.get_league_drafts(league_id)
         draft_docs_ops = []

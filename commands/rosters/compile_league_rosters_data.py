@@ -12,15 +12,15 @@ get_env()
 LEAGUE_ID = os.getenv('LEAGUE_ID')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--league', type=str, required=False, default=LEAGUE_ID, help='league id')
+parser.add_argument('--league', type=str, required=True, help='league id')
 args = parser.parse_args()
 
-def compile_league_rosters(year: str, league_id: str = LEAGUE_ID):
+def compile_league_rosters(year: str, league_id: str):
     try:
         rosters = utils.convert_keys_to_string({roster['roster_id']: roster for roster in sleeper.get_league_rosters(league_id)})
         doc_id = db['league_rosters'].update_one(
             {
-                'league_id': LEAGUE_ID,
+                'league_id': league_id,
                 'year': year
             }, 
             {
