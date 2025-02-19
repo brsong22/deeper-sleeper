@@ -48,7 +48,9 @@ if __name__ == '__main__':
 
     print(f'>> compiling [league transactions data]')
     league_info = sleeper.get_league_info(args.league)
-    compile_league_transactions(league_info['settings']['start_week'], league_info['settings']['playoff_week_start'], league_info['season'], args.league)
+    end_week = league_info['settings']['playoff_week_start'] + league_info['settings']['draft_rounds']
+
+    compile_league_transactions(league_info['settings']['start_week'], end_week, league_info['season'], args.league)
 
     end = time.time()
     print(f'=== finished in {end - start} seconds ===')

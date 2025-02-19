@@ -8,15 +8,16 @@ import os
 from pymongo import MongoClient, UpdateOne
 import ssl
 import time
-from commands.compile_league_info_data import compile_league_info
-from commands.compile_nfl_players_data import compile_nfl_players
-from commands.compile_league_users_data import compile_league_users
-from commands.compile_league_rosters_data import compile_league_rosters
-from commands.compile_league_matchups_data import compile_league_matchups
-from commands.compile_league_transactions_data import compile_league_transactions
-from commands.compile_league_standings_data import compile_league_standings
-from commands.compile_league_drafts_data import compile_league_drafts
-from commands.compile_league_max_points_data import compile_league_max_points
+from commands.league.compile_league_info_data import compile_league_info
+from commands.players.compile_nfl_players_data import compile_nfl_players
+from commands.users.compile_league_users_data import compile_league_users
+from commands.rosters.compile_league_rosters_data import compile_league_rosters
+from commands.matchups.compile_league_matchups_data import compile_league_matchups
+from commands.transactions.compile_league_transactions_data import compile_league_transactions
+from commands.standings.compile_league_standings_data import compile_league_standings
+from commands.drafts.compile_league_drafts_data import compile_league_drafts
+from commands.points.compile_league_max_points_data import compile_league_max_points
+from commands.playoffs.compile_league_playoffs_bracket_data import compile_league_playoff_bracket
 #! > python -m commands.compile_weekly_sleeper_data
 
 get_env()
@@ -55,6 +56,8 @@ def compile_weekly_sleeper_data(update_players: bool, league_id: str = LEAGUE_ID
         compile_league_max_points(matchups['matchups'], rosters['rosters'], info['league_info'], league_id)
         print('league drafts...')
         compile_league_drafts(league_id)
+        print('league playoffs brackets...')
+        compile_league_playoff_bracket(year, league_id)
     except Exception as e:
         print(f'Error compiling data: {e}')
     

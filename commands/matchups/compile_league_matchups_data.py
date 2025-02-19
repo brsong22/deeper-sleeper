@@ -23,7 +23,8 @@ def compile_league_matchups(start_week: int, end_week: int, year: str, league_id
             week_matchups = sleeper.get_league_matchups_for_week(league_id, week)
             matchups_by_id = defaultdict(dict)
             for matchup_team in week_matchups:
-                matchups_by_id[matchup_team['matchup_id']][matchup_team['roster_id']] = matchup_team
+                matchup_id = matchup_team['matchup_id'] if matchup_team['matchup_id'] else 'none'
+                matchups_by_id[matchup_id][matchup_team['roster_id']] = matchup_team
             matchups_by_id = utils.convert_keys_to_string(matchups_by_id)
             matchups_by_week[str(week)] = matchups_by_id
         doc_id = db['league_matchups'].update_one(
@@ -49,8 +50,9 @@ if __name__ == '__main__':
 
     print(f'>> compiling [league matchups data]')
     league_info = sleeper.get_league_info(args.league)
+    end_week = league_info['settings']['playoff_week_start'] + league_info['settings']['draft_rounds']
 
-    compile_league_matchups(league_info['settings']['start_week'], league_info['settings']['playoff_week_start'], league_info['season'], args.league)
+    compile_league_matchups(league_info['settings']['start_week'], end_week, league_info['season'], args.league)
 
     end = time.time()
     print(f'=== finished in {end - start} seconds ===')

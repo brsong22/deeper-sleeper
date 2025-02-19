@@ -31,14 +31,14 @@ async def init(league_id: str, year: int) -> None:
         print(res)
         raise HTTPException(status_code=500, detail="Error occurred retrieving resources.")
     return res
-    
-@app.get('/league/{league_id}/state')
-async def get_league_state(league_id: str, year: int):
-    return Main.get_league_state(year, league_id)
 
 @app.get('/league/{league_id}/drafts')
 async def get_league_drafts(league_id: str):
     return Main.get_league_drafts(league_id)
+
+@app.get('/league/{league_id}/matchups-per-week')
+async def get_league_matchups(league_id: str, year: int):
+    return Main.get_league_matchups(year, league_id)
 
 @app.get('/league/{league_id}/drafts/{draft_id}')
 async def get_league_draft_picks(league_id: str, draft_id: str):

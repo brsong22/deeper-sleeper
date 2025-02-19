@@ -27,7 +27,16 @@ def get_draft_picks(draft_id: str):
     return requests.get(f'{SLEEPER_URL}/draft/{draft_id}/picks').json()
 
 def get_league_matchups_for_week(league_id: str, week: int):
-    return requests.get(f'{os.getenv("SLEEPER_BASE_URL")}/league/{league_id}/matchups/{week}').json()
+    return requests.get(f'{SLEEPER_URL}/league/{league_id}/matchups/{week}').json()
 
 def get_league_transactions_for_week(league_id: str, week: int):
-    return requests.get(f'{os.getenv("SLEEPER_BASE_URL")}/league/{league_id}/transactions/{week}').json()
+    return requests.get(f'{SLEEPER_URL}/league/{league_id}/transactions/{week}').json()
+
+def get_league_playoffs_bracket(league_id: str):
+    w_bracket = requests.get(f'{SLEEPER_URL}/league/{league_id}/winners_bracket').json()
+    l_bracket = requests.get(f'{SLEEPER_URL}/league/{league_id}/losers_bracket').json()
+
+    return {
+        'winners': w_bracket,
+        'losers': l_bracket
+    }
