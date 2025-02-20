@@ -45,15 +45,16 @@ def compile_weekly_sleeper_data(update_players: bool, league_id: str):
         print('league rosters...')
         rosters = compile_league_rosters(year, league_id)
         start_week = info['league_info']['settings']['start_week']
-        end_week = info['league_info']['settings']['playoff_week_start']
+        regular_season_end = info['league_info']['settings']['playoff_week_start']
+        end_week = info['league_info']['settings']['playoff_week_start'] + info['league_info']['settings']['draft_rounds']
         print('league matchups...')
         matchups = compile_league_matchups(start_week, end_week, year, league_id)
         print('league transactions...')
         compile_league_transactions(start_week, end_week, year, league_id)
         print('league standings...')
-        compile_league_standings(matchups['matchups'], rosters['rosters'], year, league_id)
+        compile_league_standings(matchups['matchups'], rosters['rosters'], year, regular_season_end-1, league_id)
         print('league max points...')
-        compile_league_max_points(matchups['matchups'], rosters['rosters'], info['league_info'], league_id)
+        compile_league_max_points(matchups['matchups'], rosters['rosters'], info['league_info'], regular_season_end, league_id)
         print('league drafts...')
         compile_league_drafts(league_id)
         print('league playoffs brackets...')
