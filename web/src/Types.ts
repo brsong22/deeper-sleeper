@@ -73,28 +73,6 @@ export type LeagueRoster = {
 
 export type LeagueRosterDict = { [rosterId: string]: LeagueRoster }
 
-export type LeagueMatchup = {
-    points: number,
-    players: string[],
-    roster_id: number,
-    matchup_id: number,
-    starters: string[],
-    starters_points: number[],
-    players_points: {
-        [key: string]: number
-    }
-}
-
-export type LeagueMatchupDict = {
-    [matchupId: number]: {
-        [rosterId: number]: LeagueMatchup
-    }
-}
-
-export type WeeklyMatchupsData = {
-    [week: number]: LeagueMatchupDict
-}
-
 export type TeamTransaction = {
     status: string,
     type: string,
@@ -116,6 +94,19 @@ export type WeeklyTransactionsData = {
     }
 }
 
+export type WaiverSnapshotData = {
+    [rosterId: string]: {
+        roster_name: string,
+        waivers: {
+            [playerId: string]: {
+                faab: number,
+                player_name: string,
+                points: number,
+                weeks: number
+            }
+        }
+    }
+}
 
 type TeamPointsStats = {
     pf: number,

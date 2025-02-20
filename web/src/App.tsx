@@ -13,6 +13,7 @@ import WeeklyTransactions from './components/transactions/WeeklyTransactions';
 import LeagueStateTable from './components/leagueState/LeagueStateTable';
 import DraftBoard from './components/draftBoard/DraftBoard';
 import StandingsSnapshot from './components/snapshots/StandingsSnapshot';
+import WaiversSnapshot from './components/snapshots/WaiversSnapshot';
 
 function App() {
 	const API_URL = process.env.REACT_APP_API_URL;
@@ -72,9 +73,12 @@ function App() {
 						<span>Week: <strong>{displayWeek}</strong></span>
 					</div>
 					<div className='p-2 grid gap-y-3'>
-						<div className='mt-2 w-full flex justify-start gap-x-5'>
+						<div className='mt-2 w-full justify-start gap-x-5 grid grid-flow-col'>
 							<div className='w-[225px] h-[177px]'>
 								<StandingsSnapshot leagueId={leagueInfo.league_id} week={displayWeek} rosters={leagueRosters} users={leagueUsers} />
+							</div>
+							<div className='w-[355px] h-[177px]'>
+								<WaiversSnapshot leagueId={leagueInfo.league_id} />
 							</div>
 						</div>
 						<div className="w-full border-t-2 border-gray-200">
