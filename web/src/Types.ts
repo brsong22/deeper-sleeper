@@ -85,7 +85,37 @@ export type LeagueMatchup = {
     }
 }
 
-export type LeagueMatchupDict = { [matchupId: number]: LeagueMatchup }
+export type LeagueMatchupDict = {
+    [matchupId: number]: {
+        [rosterId: number]: LeagueMatchup
+    }
+}
+
+export type WeeklyMatchupsData = {
+    [week: number]: LeagueMatchupDict
+}
+
+export type TeamTransaction = {
+    status: string,
+    type: string,
+    settings: {
+        waiver_bid: number
+    },
+    adds: {
+        [key: number]: number
+    },
+    drops: {
+        [key: number]: number
+    },
+    roster_ids: number[]
+}
+
+export type WeeklyTransactionsData = {
+    [key: number]: {
+        [key: number]: TeamTransaction[]
+    }
+}
+
 
 type TeamPointsStats = {
     pf: number,

@@ -1,7 +1,7 @@
 import { ResponsiveBar } from '@nivo/bar';
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
-import { LeagueRosterDict, LeagueUserDict } from '../../Types';
+import { LeagueRosterDict, LeagueUserDict, WeeklyTransactionsData } from '../../Types';
 import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -9,16 +9,6 @@ type Props = {
     leagueId: string,
     rosters: LeagueRosterDict,
     users: LeagueUserDict
-}
-
-type TeamTransaction = {
-    status: string,
-    type: string
-}
-type WeeklyTransactions = {
-    [key: number]: {
-        [key: number]: TeamTransaction[]
-    }
 }
 type TeamTransactionTotals = {
     [key: string]: {
@@ -50,7 +40,7 @@ export function WeeklyTransactions({
                 }
             })
             .then(response => {
-                const transactions: WeeklyTransactions = response.data;
+                const transactions: WeeklyTransactionsData = response.data;
                 const types: string[] = [];
                 const totals: TeamTransactionTotals = {};
                 for (const [week, weeksTransactions] of Object.entries(transactions)) {

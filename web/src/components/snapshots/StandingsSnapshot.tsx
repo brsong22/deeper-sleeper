@@ -1,10 +1,14 @@
 import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
 import { LeagueRosterDict, LeagueUserDict } from '../../Types';
 import { SnapshotTable } from '../snapshotTable/SnapshotTable';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faAward, faMedal, faPoop, faTrophy } from '@fortawesome/free-solid-svg-icons';
+import { getRankAttributes } from '../snapshotTable/Utils';
 
+type SnapshotRow = {
+    rankIcon: ReactElement,
+    iconStyle: string,
+    name: string
+}
 type Props = {
     leagueId: string,
     week: number,
@@ -21,7 +25,7 @@ export function StandingsSnapshot({
     const API_URL = process.env.REACT_APP_API_URL;
 
     const podiumHeader = 'Podium (regular season)';
-    const [podiumRows, setPodiumRows] = useState<string[]>([]);
+    const [podiumRows, setPodiumRows] = useState<SnapshotRow[]>([]);
 
     const podiumCellRenderer = (row: any) => (
         <div className='flex items-center'>
@@ -42,29 +46,16 @@ export function StandingsSnapshot({
             // const second = finalStandings[1];
             // const third = finalStandings[2];
             // const last = finalStandings[Object.keys(users).length]
-            const ranks = [0, 1, 2, Object.keys(users).length-1];
+            const ranks = [0, 1, 2, Object.keys(rosters).length-1];
             const rows = ranks.reduce((acc, rank) => {
-                const icon = rank === 0
-                    ? <FontAwesomeIcon icon={faTrophy} />
-                    : rank === 1
-                        ? <FontAwesomeIcon icon={faMedal} />
-                        : rank === 2
-                            ? <FontAwesomeIcon icon={faAward} />
-                            : <FontAwesomeIcon icon={faPoop} />;
-                const style = rank === 0
-                    ? 'text-yellow-400'
-                    : rank === 1
-                        ? 'text-zinc-400'
-                        : rank === 2
-                            ? 'text-[#cf9417]'
-                        : 'text-[#873d0c]';
+                const {icon, style} = getRankAttributes(rank);
                 acc[rank] = {
                     rankIcon: icon,
                     iconStyle: style,
                     name: users[rosters[Object.keys(finalStandings[rank])[0]].owner_id].display_name
                 };
                 return acc
-            }, {} as any);
+            }, {} as Record<number, SnapshotRow>);
             setPodiumRows(Object.values(rows))
         });
     }, []);
