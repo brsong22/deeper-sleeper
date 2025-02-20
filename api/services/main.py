@@ -2,7 +2,7 @@ from collections import defaultdict
 from api.mongodb_client import get_db
 from api.utils.utils import get_env
 import os
-from api.services import sleeper as Sleeper
+from api.services import sleeper, waivers_service
 
 get_env()
 LEAGUE_ID = os.getenv('LEAGUE_ID')
@@ -25,7 +25,7 @@ def init(year: int, league_id = LEAGUE_ID):
         return False
 
 def get_nfl_state():
-    nfl_state = Sleeper.get_nfl_state()
+    nfl_state = sleeper.get_nfl_state()
     
     return nfl_state
 
@@ -83,6 +83,10 @@ def get_league_standings(year: int, league_id: str = LEAGUE_ID):
         league_standings = league_standings['standings']
 
     return league_standings
+
+def get_league_snapshot(league_id: str, year: int, type: str):
+    if type == 'waivers':
+        return waivers_service.get_waivers_total_points(league_id, year)
     
 def get_per_week_points():
     nfl_state = get_nfl_state()

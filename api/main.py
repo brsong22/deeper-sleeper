@@ -56,6 +56,10 @@ async def get_rankings(league_id: str, year: int):
 async def get_transactions_count(league_id: str, year: int):
     return Main.get_league_transactions(year, league_id)
 
+@app.get('/league/{league_id}/snapshot')
+async def get_snapshot(league_id: str, year: int, type: str):
+    return Main.get_league_snapshot(league_id, year, type)
+
 @app.get('/players')
 async def get_players(year: int, week: int, ids: List[str] = Query()):
     return Main.get_players(ids, year, week)
