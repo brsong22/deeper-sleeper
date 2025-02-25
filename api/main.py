@@ -30,6 +30,8 @@ async def init(league_id: str, year: int) -> None:
     if not (res := Main.init(year, league_id)):
         print(res)
         raise HTTPException(status_code=500, detail="Error occurred retrieving resources.")
+    if not res['league_info'] or not res['league_users'] or not res['league_rosters']:
+        raise HTTPException(status_code=404, detail="Could not find league records.")
     return res
 
 @app.get('/league/{league_id}/drafts')

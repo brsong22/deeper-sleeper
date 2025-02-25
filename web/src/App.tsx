@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import './App.css'
-import 'ag-grid-community/styles/ag-grid.css'; // Mandatory CSS required by the Data Grid
-import 'ag-grid-community/styles/ag-theme-quartz.css'; // Optional Theme applied to the Data Grid
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-quartz.css';
 import {
 	LeagueInfo,
 	LeagueUserDict,
@@ -14,20 +14,25 @@ import LeagueStateTable from './components/leagueState/LeagueStateTable';
 import DraftBoard from './components/draftBoard/DraftBoard';
 import StandingsSnapshot from './components/snapshots/StandingsSnapshot';
 import WaiversSnapshot from './components/snapshots/WaiversSnapshot';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCheck, faPencil } from '@fortawesome/free-solid-svg-icons';
 
 function App() {
 	const API_URL = process.env.REACT_APP_API_URL;
-	const LEAGUE_ID = process.env.REACT_APP_LEAGUE_ID;
 
+	const [leagueId, setLeagueId] = useState<string>('');
+	const [leagueIdInputValue, setLeagueIdInputValue] = useState<string>('');
+	const [editLeagueId, setEditLeagueId] = useState<boolean>(false);
 	const [leagueInfo, setLeagueInfo] = useState<LeagueInfo>();
 	const [displayWeek, setDisplayWeek] = useState<number>(0);
 	const [leagueUsers, setLeagueUsers] = useState<LeagueUserDict>();
 	const [leagueRosters, setLeagueRosters] = useState<LeagueRosterDict>();
+	const [missingLeagueMessage, setMissingLeagueMessage] = useState<string>('');
 	
 	useEffect(() => {
-		if (LEAGUE_ID) {
+		if (leagueId) {
 			try {
-				axios.get(`${API_URL}/league/${LEAGUE_ID}`, {
+				axios.get(`${API_URL}/league/${leagueId}`, {
 					params: {
 						year: 2024
 					}
@@ -44,12 +49,30 @@ function App() {
 					} else {
 						setDisplayWeek(data['nfl_state']['leg']);
 					}
+				}).catch(error => {
+					if (error.response.status === 404) {
+						setMissingLeagueMessage(error.response.data.detail);
+						setLeagueId(leagueId);
+						setLeagueInfo(undefined);
+						setLeagueUsers(undefined);
+						setLeagueRosters(undefined);
+						setLeagueIdInputValue(leagueId);
+						setEditLeagueId(true);			
+					}
 				})
 			} catch (error) {
 				console.error('Error fetching data:', error);
 			}
+		} else {
+			setMissingLeagueMessage('No Sleeper League ID set.');
+			setLeagueId('');
+			setLeagueIdInputValue('');
+			setLeagueInfo(undefined);
+			setLeagueUsers(undefined);
+			setLeagueRosters(undefined);
+			setEditLeagueId(true);
 		}
-	}, [API_URL, LEAGUE_ID]);
+	}, [API_URL, leagueId]);
 
 	const bannerColor = useMemo(() => {
 		switch (leagueInfo?.status) {
@@ -61,17 +84,48 @@ function App() {
 				return '#cccccc';
 		}
 	}, [leagueInfo]);
+
+	const leagueIdChangeHandler = () => {
+		setEditLeagueId(true);
+		setLeagueIdInputValue(leagueId);
+	};
+
+	const leagueIdSubmitHandler = () => {
+		if (!/^\d*$/.test(leagueIdInputValue)) {
+			setMissingLeagueMessage('Invalid Sleeper ID value.');
+			setLeagueIdInputValue(leagueId);
+		} else {
+			setLeagueId(leagueIdInputValue);
+			setEditLeagueId(false);
+		}
+	}
 	
 	return (
 		<>
+			<div className='pl-5 w-full h-20 items-center text-lg flex justify-start gap-x-10' style={{ backgroundColor: bannerColor }}>
+				{
+					editLeagueId || (!leagueInfo || !leagueRosters || !leagueUsers)?
+						<>
+							<span>
+								League:
+								<input className='ml-1 p-1 rounded-md' type='text' pattern='\d*' inputMode='numeric' value={leagueIdInputValue} onChange={(e) => setLeagueIdInputValue(e.target.value)} placeholder='Sleeper League ID'/>
+								<FontAwesomeIcon className='ml-2 bg-green-200 text-sm' icon={faCheck} onClick={leagueIdSubmitHandler} cursor='pointer'/>
+							</span>
+						</>
+						:
+						<>
+							<span>
+								League: <strong>{leagueInfo?.name}</strong> ({leagueInfo?.league_id})
+								<FontAwesomeIcon className='ml-1 text-sm' icon={faPencil} onClick={leagueIdChangeHandler} cursor='pointer'/>
+							</span>
+						</>
+				}
+				<span>Status: <strong>{leagueInfo?.status}</strong></span>
+				<span>Week: <strong>{displayWeek}</strong></span>
+			</div>
 			{
-				leagueInfo && leagueRosters && leagueUsers &&
+				leagueId && leagueInfo && leagueRosters && leagueUsers ?
 				<div>
-					<div className='pl-5 w-full h-20 items-center text-lg flex justify-start gap-x-10' style={{ backgroundColor: bannerColor }}>
-						<span>League: <strong>{leagueInfo?.name}</strong> ({leagueInfo?.league_id})</span>
-						<span>Status: <strong>{leagueInfo?.status}</strong></span>
-						<span>Week: <strong>{displayWeek}</strong></span>
-					</div>
 					<div className='p-2 grid gap-y-3'>
 						<div className='mt-2 w-full justify-start gap-x-5 grid grid-flow-col'>
 							<div className='w-[225px] h-[177px]'>
@@ -90,6 +144,16 @@ function App() {
 							</div>
 						</div>
 					</div>
+				</div>
+				:
+				<div>
+					{missingLeagueMessage}
+					<br />
+					Set your Sleeper League ID above.
+					<br />
+					If your ID is correct, it will need to be added to the database (working on creating a process for data population requests)
+					<br />
+					<strong>For demo purposes you can use ID [1124596266089963520]</strong>
 				</div>
 			}
 		</>
