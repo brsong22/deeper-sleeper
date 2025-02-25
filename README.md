@@ -17,15 +17,6 @@ Dive deeper into Sleeper fantasy football league stats
 - Learn how to host a website using cloud services such as AWS.
 - Explore other tools and services, such as Github Actions, to build a modern, automated CI/CD pipeline.
 
-**Data Point ideas**:
-- [x] Weekly standings
-- [x] Transaction totals
-- [ ] Weekly potential max
-- [ ] Weekly FAAB breakdown
-- [x] Draft picks
-- [x] Player draft spot vs (adp / Season Ranking)
-- [ ] Sleeper weekly awards summary
-
 **Infrastructure Overview**
 
 I decided to host using AWS because of semi-familiarity with it's services and capabilities and because of its general popularity. The below services are what I ultimately used to be able to host the app with a publicly accessible website and to have a rudimentary deployment process.
