@@ -1,15 +1,10 @@
 services:
-  redis:
-    container_name: deepersleeper_redis
-    image: redis:latest
-    ports:
-      - "6379:6379"
-    networks:
-      - deepersleeper_network
-  
   api:
     build:
       context: ./api
+      target: ${NODE_ENV}
+      args:
+        NODE_ENV: ${NODE_ENV}
     container_name: deepersleeper_api
     ports:
       - "8000:8000"
@@ -18,8 +13,6 @@ services:
       - deepersleeper_network
     env_file:
       - ./api/.env
-    depends_on:
-      - redis
 
   web:
     build:
