@@ -43,6 +43,7 @@ export function WeeklyTransactions({
                 const transactions: WeeklyTransactionsData = response.data;
                 const types: string[] = [];
                 const totals: TeamTransactionTotals = {};
+                // @ts-ignore
                 for (const [week, weeksTransactions] of Object.entries(transactions)) {
                     for (const [teamId, teamTransactions] of Object.entries(weeksTransactions)) {
                         for (const t of teamTransactions) {

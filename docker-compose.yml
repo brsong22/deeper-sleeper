@@ -24,9 +24,12 @@ services:
   web:
     build:
       context: ./web
+      target: ${NODE_ENV}
+      args:
+        NODE_ENV: ${NODE_ENV}
     container_name: deepersleeper_web
     ports:
-      - "3000:3000"
+      - ${PORT_MAPPING}
     restart: always
     networks:
       - deepersleeper_network

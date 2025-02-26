@@ -23,7 +23,7 @@ export const generateDraftTableColDefs = (users: LeagueUserDict, teamOrder: stri
         cellRenderer: DraftPickCellRenderer,
         cellRendererParams: (r: any) => ({
             pick: r.data[teamId].pick,
-            projection: r.data[teamId].projection,
+            // projection: r.data[teamId].projection,
             ranking: r.data[teamId].ranking,
             adp: r.data[teamId].adp,
             handleAdpData: handleAdpData,

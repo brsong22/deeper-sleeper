@@ -84,7 +84,7 @@ type Props = {
 
 export function DraftPickCellRenderer({
     pick,
-    projection,
+    // projection,
     ranking,
     adp,
     handleAdpData,

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { AdpTooltipData } from './DraftTable';
 
 export const DraftPickCellAdpTooltip = ({adpData}: {adpData: AdpTooltipData}) => {
