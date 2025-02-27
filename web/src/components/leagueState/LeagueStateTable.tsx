@@ -1,22 +1,19 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { LeagueRoster, LeagueRosterDict, LeagueUserDict } from '../../Types';
 import { AgGridReact } from 'ag-grid-react';
 import { leagueStateColDefs } from './LeagueStateColDefs';
 import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { RosterContext, UserContext } from '../../App';
 
-type Props = {
-    rosters: LeagueRosterDict,
-    users: LeagueUserDict
-}
+type Props = {}
 
-export function LeagueStateTable({
-    rosters,
-    users
-}: Props) {
+export function LeagueStateTable({}: Props) {
 	const [isSummaryVisible, setIsSummaryVisible] = useState<boolean>(false);
 	const [summaryMaxHeight, setSummaryMaxHeight] = useState<string>('0px');
     const contentRef = useRef<HTMLDivElement>(null);
+    const users: LeagueUserDict = useContext(UserContext);
+    const rosters: LeagueRosterDict = useContext(RosterContext)
 
     useEffect(() => {
         if (contentRef.current) {

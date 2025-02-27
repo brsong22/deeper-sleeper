@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { DraftData, DraftPick, LeagueUserDict, PlayerAdp, PlayerProjection, PlayerRanking } from '../../Types';
 import { AgGridReact } from 'ag-grid-react';
@@ -6,6 +6,7 @@ import { generateDraftTableColDefs } from './DraftTableColDefs';
 import { Tooltip } from 'react-tooltip';
 import DraftPickCellAdpTooltip from './DraftPickCellAdpTooltip';
 import DraftPickCellRankTooltip from './DraftPickCellRankTooltip';
+import { LeagueContext, UserContext } from '../../App';
 
 type DraftPickRowData = {
     round: number;
@@ -24,16 +25,12 @@ export type RankTooltipData = {
 }
 
 type Props = {
-    leagueId: string,
     draft: DraftData,
-    users: LeagueUserDict,
     onRendered: () => void
 }
 
 export function DraftTable({
-    leagueId,
     draft,
-    users,
     onRendered
 }: Props) {
     const API_URL = process.env.REACT_APP_API_URL;
@@ -44,7 +41,10 @@ export function DraftTable({
     const [roundsDataReady, setRoundsDataReady] = useState<boolean>(false);
     const [adpTooltipData, setAdpTooltipData] = useState<AdpTooltipData>({adp: 0, pick: 0});
     const [rankTooltipData, setRankTooltipData] = useState<RankTooltipData>({rank: 0, pick: 0});
-
+    
+    const leagueId: string = useContext(LeagueContext);
+    const users: LeagueUserDict = useContext(UserContext);
+    
     const handleAdpTooltipData = (data: AdpTooltipData) => {
         setAdpTooltipData(data);
     }

@@ -1,15 +1,13 @@
 import { ResponsiveBar } from '@nivo/bar';
 import axios from "axios";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { LeagueRosterDict, LeagueUserDict, WeeklyTransactionsData } from '../../Types';
 import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { LeagueContext, RosterContext, UserContext } from '../../App';
 
-type Props = {
-    leagueId: string,
-    rosters: LeagueRosterDict,
-    users: LeagueUserDict
-}
+type Props = {}
+
 type TeamTransactionTotals = {
     [key: string]: {
         [key: string]: number
@@ -19,17 +17,17 @@ type TeamTransactionsData = {
     id: string;
     [key: string]: number | string;
 }
-export function WeeklyTransactions({
-    leagueId,
-    rosters,
-    users
-}: Props) {
+export function WeeklyTransactions({}: Props) {
     const API_URL = process.env.REACT_APP_API_URL;
 
     const [transactionTypes, setTransactionTypes] = useState<string[]>([]);
     const [teamTransactionTotals, setTeamTransactionTotals] = useState<TeamTransactionsData[]>([]);
     const [isTransactionsVisible, setIsTransactionsVisible] = useState<boolean>(false);
 	const [transactionsMaxHeight, setTransactionsMaxHeight] = useState<string>('0px');
+    
+    const leagueId: string = useContext(LeagueContext);
+    const users: LeagueUserDict = useContext(UserContext);
+    const rosters: LeagueRosterDict = useContext(RosterContext);
     const contentRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {

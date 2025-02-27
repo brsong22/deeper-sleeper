@@ -1,18 +1,15 @@
 import { ResponsiveBump } from "@nivo/bump";
 import axios from "axios";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import {
 	LeagueUserDict,
 	LeagueRosterDict
 } from '../../Types'
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { LeagueContext, RosterContext, UserContext } from "../../App";
 
-type Props = {
-    leagueId: string,
-    rosters: LeagueRosterDict,
-    users: LeagueUserDict
-}
+type Props = {}
 
 type WeekStandingData = {
     x: string,
@@ -23,17 +20,16 @@ type StandingsData = {
     data: WeekStandingData[]
 }
 
-export function WeeklyStandings({
-    leagueId,
-    rosters,
-    users
-}: Props) {
+export function WeeklyStandings({}: Props) {
     const API_URL = process.env.REACT_APP_API_URL;
 
     const [weeklyStandings, setWeeklyStandings] = useState<StandingsData[]>([]);
     const [isStandingsVisible, setIsStandingsVisible] = useState<boolean>(false);
 	const [standingsMaxHeight, setStandingsMaxHeight] = useState<string>('0px');
 
+    const leagueId: string = useContext(LeagueContext);
+    const users: LeagueUserDict = useContext(UserContext);
+    const rosters: LeagueRosterDict = useContext(RosterContext);
     const contentRef = useRef<HTMLDivElement>(null);
     
     useEffect(() => {

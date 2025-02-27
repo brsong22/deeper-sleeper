@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { createContext, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import './App.css'
 import 'ag-grid-community/styles/ag-grid.css';
@@ -16,6 +16,10 @@ import StandingsSnapshot from './components/snapshots/StandingsSnapshot';
 import WaiversSnapshot from './components/snapshots/WaiversSnapshot';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faPencil } from '@fortawesome/free-solid-svg-icons';
+
+export const LeagueContext = createContext('');
+export const UserContext = createContext({});
+export const RosterContext = createContext({});
 
 function App() {
 	const API_URL = process.env.REACT_APP_API_URL;
@@ -145,10 +149,16 @@ function App() {
 								</div>
 								<div className="w-full border-t-2 border-gray-200">
 									<div className="flex flex-col w-full h-full row-start-3">
-										<DraftBoard leagueId={leagueId} users={leagueUsers} />
-										<LeagueStateTable rosters={leagueRosters} users={leagueUsers}/>
-										<WeeklyStandings leagueId={leagueId} rosters={leagueRosters} users={leagueUsers}/>
-										<WeeklyTransactions leagueId={leagueId} rosters={leagueRosters} users={leagueUsers}/>
+										<LeagueContext.Provider value={leagueId}>
+											<UserContext.Provider value={leagueUsers}>
+												<RosterContext.Provider value={leagueRosters}>
+													<DraftBoard />
+													<LeagueStateTable />
+													<WeeklyStandings />
+													<WeeklyTransactions />
+												</RosterContext.Provider>
+											</UserContext.Provider>
+										</LeagueContext.Provider>
 									</div>
 								</div>
 							</div>

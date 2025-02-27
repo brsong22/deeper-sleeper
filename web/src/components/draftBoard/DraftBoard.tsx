@@ -1,23 +1,18 @@
 import axios from 'axios';
-import { useEffect, useRef, useState } from 'react';
-import { DraftData, LeagueUserDict } from '../../Types';
+import { useContext, useEffect, useRef, useState } from 'react';
+import { DraftData } from '../../Types';
 import DraftTable from './DraftTable';
 import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { LeagueContext } from '../../App';
 
 type DraftsByYear = {
     [key: string]: DraftData
 }
 
-type Props = {
-    leagueId: string,
-    users: LeagueUserDict
-}
+type Props = {}
 
-export function DraftBoard({
-    leagueId,
-    users
-}: Props) {
+export function DraftBoard({}: Props) {
     const API_URL = process.env.REACT_APP_API_URL;
 
     const [draftsByYear, setDraftsByYear] = useState<DraftsByYear>({});
@@ -25,6 +20,8 @@ export function DraftBoard({
     const [isDraftBoardVisible, setIsDraftBoardVisible] = useState<boolean>(true);
 	const [draftBoardMaxHeight, setDraftBoardMaxHeight] = useState<string>('775px');
     const [isDraftTableRendered, setIsDraftTableRendered] = useState<boolean>(false);
+    
+    const leagueId: string = useContext(LeagueContext);
     const contentRef = useRef<HTMLDivElement>(null);
 
     const handleYearChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -82,7 +79,7 @@ export function DraftBoard({
                 </label>
                 {
                     selectedDraft &&
-                        <DraftTable leagueId={leagueId} draft={selectedDraft} users={users} onRendered={() => setIsDraftTableRendered(true)}/>
+                        <DraftTable draft={selectedDraft} onRendered={() => setIsDraftTableRendered(true)}/>
                 }
             </div>
         </div>
