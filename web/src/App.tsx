@@ -28,10 +28,12 @@ function App() {
 	const [leagueUsers, setLeagueUsers] = useState<LeagueUserDict>();
 	const [leagueRosters, setLeagueRosters] = useState<LeagueRosterDict>();
 	const [missingLeagueMessage, setMissingLeagueMessage] = useState<string>('');
+	const [isLoading, setIsLoading] = useState<boolean>(false);
 	
 	useEffect(() => {
 		if (leagueId) {
 			try {
+				setIsLoading(true);
 				axios.get(`${API_URL}/league/${leagueId}`, {
 					params: {
 						year: 2024
@@ -59,7 +61,9 @@ function App() {
 						setLeagueIdInputValue(leagueId);
 						setEditLeagueId(true);			
 					}
-				})
+				}).finally(() => {
+					setIsLoading(false);
+				});
 			} catch (error) {
 				console.error('Error fetching data:', error);
 			}
@@ -91,20 +95,23 @@ function App() {
 	};
 
 	const leagueIdSubmitHandler = () => {
-		if (!/^\d*$/.test(leagueIdInputValue)) {
+		if (/^\d*$/.test(leagueIdInputValue)) {
+			setLeagueId(leagueIdInputValue);
+			setLeagueInfo(undefined);
+			setLeagueUsers(undefined);
+			setLeagueRosters(undefined);
+			setEditLeagueId(false);
+		} else {
 			setMissingLeagueMessage('Invalid Sleeper ID value.');
 			setLeagueIdInputValue(leagueId);
-		} else {
-			setLeagueId(leagueIdInputValue);
-			setEditLeagueId(false);
 		}
 	}
-	
+
 	return (
 		<>
 			<div className='pl-5 w-full h-20 items-center text-lg flex justify-start gap-x-10' style={{ backgroundColor: bannerColor }}>
 				{
-					editLeagueId || (!leagueInfo || !leagueRosters || !leagueUsers)?
+					editLeagueId || (!leagueInfo || !leagueRosters || !leagueUsers) ?
 						<>
 							<span>
 								League:
@@ -124,37 +131,42 @@ function App() {
 				<span>Week: <strong>{displayWeek}</strong></span>
 			</div>
 			{
-				leagueId && leagueInfo && leagueRosters && leagueUsers ?
-				<div>
-					<div className='p-2 grid gap-y-3'>
-						<div className='mt-2 w-full justify-start gap-x-5 grid grid-flow-col'>
-							<div className='w-[225px] h-[177px]'>
-								<StandingsSnapshot leagueId={leagueInfo.league_id} week={displayWeek} rosters={leagueRosters} users={leagueUsers} />
-							</div>
-							<div className='w-[355px] h-[177px]'>
-								<WaiversSnapshot leagueId={leagueInfo.league_id} />
+				!isLoading ?
+					leagueId && leagueInfo && leagueRosters && leagueUsers ?
+						<div>
+							<div className='p-2 grid gap-y-3'>
+								<div className='mt-2 w-full justify-start gap-x-5 grid grid-flow-col'>
+									<div className='w-[225px] h-[177px]'>
+										<StandingsSnapshot leagueId={leagueId} week={displayWeek} rosters={leagueRosters} users={leagueUsers} />
+									</div>
+									<div className='w-[355px] h-[177px]'>
+										<WaiversSnapshot leagueId={leagueId} />
+									</div>
+								</div>
+								<div className="w-full border-t-2 border-gray-200">
+									<div className="flex flex-col w-full h-full row-start-3">
+										<DraftBoard leagueId={leagueId} users={leagueUsers} />
+										<LeagueStateTable rosters={leagueRosters} users={leagueUsers}/>
+										<WeeklyStandings leagueId={leagueId} rosters={leagueRosters} users={leagueUsers}/>
+										<WeeklyTransactions leagueId={leagueId} rosters={leagueRosters} users={leagueUsers}/>
+									</div>
+								</div>
 							</div>
 						</div>
-						<div className="w-full border-t-2 border-gray-200">
-							<div className="flex flex-col w-full h-full row-start-3">
-								<DraftBoard leagueId={leagueInfo.league_id} users={leagueUsers} />
-								<LeagueStateTable rosters={leagueRosters} users={leagueUsers}/>
-								<WeeklyStandings leagueId={leagueInfo.league_id} rosters={leagueRosters} users={leagueUsers}/>
-								<WeeklyTransactions leagueId={leagueInfo.league_id} rosters={leagueRosters} users={leagueUsers}/>
-							</div>
+						:
+						<div>
+							{missingLeagueMessage}
+							<br />
+							Set your Sleeper League ID above.
+							<br />
+							If your ID is correct, it will need to be added to the database (working on creating a process for data population requests)
+							<br />
+							<strong>For demo purposes you can use ID [1124596266089963520]</strong>
 						</div>
-					</div>
-				</div>
-				:
-				<div>
-					{missingLeagueMessage}
-					<br />
-					Set your Sleeper League ID above.
-					<br />
-					If your ID is correct, it will need to be added to the database (working on creating a process for data population requests)
-					<br />
-					<strong>For demo purposes you can use ID [1124596266089963520]</strong>
-				</div>
+					:
+					<>
+						<span>Loading...</span>
+					</>
 			}
 		</>
 	)

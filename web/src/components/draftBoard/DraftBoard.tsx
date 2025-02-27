@@ -43,7 +43,7 @@ export function DraftBoard({
             setDraftsByYear(draftsByYear);
             setSelectedDraft(draftsByYear[Object.keys(draftsByYear)[0]])
         })
-    }, []);
+    }, [leagueId]);
 
     useEffect(() => {
         if (contentRef.current) {
