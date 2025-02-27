@@ -21,7 +21,7 @@ export function DraftBoard({}: Props) {
 	const [draftBoardMaxHeight, setDraftBoardMaxHeight] = useState<string>('775px');
     const [isDraftTableRendered, setIsDraftTableRendered] = useState<boolean>(false);
     
-    const leagueId: string = useContext(LeagueContext);
+    const leagueId: string = useContext(LeagueContext).leagueId;
     const contentRef = useRef<HTMLDivElement>(null);
 
     const handleYearChange = (event: React.ChangeEvent<HTMLSelectElement>) => {

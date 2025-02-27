@@ -17,7 +17,7 @@ import WaiversSnapshot from './components/snapshots/WaiversSnapshot';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faPencil } from '@fortawesome/free-solid-svg-icons';
 
-export const LeagueContext = createContext('');
+export const LeagueContext = createContext({leagueId: '', displayWeek: 0});
 export const UserContext = createContext({});
 export const RosterContext = createContext({});
 
@@ -149,7 +149,7 @@ function App() {
 								</div>
 								<div className="w-full border-t-2 border-gray-200">
 									<div className="flex flex-col w-full h-full row-start-3">
-										<LeagueContext.Provider value={leagueId}>
+										<LeagueContext.Provider value={{leagueId, displayWeek}}>
 											<UserContext.Provider value={leagueUsers}>
 												<RosterContext.Provider value={leagueRosters}>
 													<DraftBoard />

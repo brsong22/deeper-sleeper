@@ -25,7 +25,7 @@ export function WeeklyTransactions({}: Props) {
     const [isTransactionsVisible, setIsTransactionsVisible] = useState<boolean>(false);
 	const [transactionsMaxHeight, setTransactionsMaxHeight] = useState<string>('0px');
     
-    const leagueId: string = useContext(LeagueContext);
+    const leagueId: string = useContext(LeagueContext).leagueId;
     const users: LeagueUserDict = useContext(UserContext);
     const rosters: LeagueRosterDict = useContext(RosterContext);
     const contentRef = useRef<HTMLDivElement>(null);

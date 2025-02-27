@@ -27,7 +27,7 @@ export function WeeklyStandings({}: Props) {
     const [isStandingsVisible, setIsStandingsVisible] = useState<boolean>(false);
 	const [standingsMaxHeight, setStandingsMaxHeight] = useState<string>('0px');
 
-    const leagueId: string = useContext(LeagueContext);
+    const leagueId: string = useContext(LeagueContext).leagueId;
     const users: LeagueUserDict = useContext(UserContext);
     const rosters: LeagueRosterDict = useContext(RosterContext);
     const contentRef = useRef<HTMLDivElement>(null);

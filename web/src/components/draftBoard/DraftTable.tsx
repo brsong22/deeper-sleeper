@@ -42,7 +42,7 @@ export function DraftTable({
     const [adpTooltipData, setAdpTooltipData] = useState<AdpTooltipData>({adp: 0, pick: 0});
     const [rankTooltipData, setRankTooltipData] = useState<RankTooltipData>({rank: 0, pick: 0});
     
-    const leagueId: string = useContext(LeagueContext);
+    const leagueId: string = useContext(LeagueContext).leagueId;
     const users: LeagueUserDict = useContext(UserContext);
     
     const handleAdpTooltipData = (data: AdpTooltipData) => {
