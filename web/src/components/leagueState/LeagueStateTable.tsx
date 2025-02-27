@@ -1,43 +1,55 @@
 import { useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { LeagueRoster, LeagueRosterDict, LeagueUserDict } from '../../Types';
+import { LeagueRoster, LeagueRosterDict, LeagueUserDict, RosterStandingsData, WeeklyStandingsData } from '../../Types';
 import { AgGridReact } from 'ag-grid-react';
 import { leagueStateColDefs } from './LeagueStateColDefs';
 import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { RosterContext, UserContext } from '../../App';
+import { LeagueContext, RosterContext, UserContext } from '../../App';
+import axios from 'axios';
 
 type Props = {}
 
 export function LeagueStateTable({}: Props) {
+	const API_URL = process.env.REACT_APP_API_URL;
+
 	const [isSummaryVisible, setIsSummaryVisible] = useState<boolean>(false);
 	const [summaryMaxHeight, setSummaryMaxHeight] = useState<string>('0px');
-    const contentRef = useRef<HTMLDivElement>(null);
+    const [standings, setStandings] = useState<RosterStandingsData[]>([]);
+
+    const {leagueId, displayWeek} = useContext(LeagueContext);
     const users: LeagueUserDict = useContext(UserContext);
     const rosters: LeagueRosterDict = useContext(RosterContext)
+    const contentRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        try {
+            axios.get(`${API_URL}/league/${leagueId}/standings-per-week`, {
+                params: {
+                    year: 2024
+                }
+            })
+            .then(response => {
+                const data = response.data;
+                setStandings(data[`${displayWeek}`].map((team: RosterStandingsData) => {
+                    const rosterId: string = Object.keys(team)[0];
+                    const ownerId: string = rosters[rosterId].owner_id;
+                    return {
+                        ownerId,
+                        rosterId,
+                        ...team[parseInt(rosterId, 10)]
+                    }
+                }));
+            });
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    }, [leagueId]);
 
     useEffect(() => {
         if (contentRef.current) {
             setSummaryMaxHeight(isSummaryVisible ? `${contentRef.current.scrollHeight}px` : "0px");
         }
     }, [isSummaryVisible]);
-
-    const rosterRankings: LeagueRoster[] = useMemo(() => {
-        return Object.values(rosters).sort((a, b) => {
-            if (a.settings.wins !== b.settings.wins) {
-                return b.settings.wins - a.settings.wins;
-            }
-            if (a.settings.losses !== b.settings.losses) {
-                return a.settings.losses - b.settings.losses;
-            }
-            if (a.settings.ties !== b.settings.ties) {
-                return b.settings.ties - a.settings.ties;
-            }
-            if (a.settings.fpts !== b.settings.fpts) {
-                return b.settings.fpts - a.settings.fpts;
-            }
-            return b.settings.fpts_decimal - a.settings.fpts_decimal;
-        });
-    }, [rosters, users]);
 
     return (
         <div className='w-full border-b-2 border-gray-200'>
@@ -60,9 +72,9 @@ export function LeagueStateTable({}: Props) {
                     <div className="w-full min-h-[250px]">
                         <div className="ag-theme-quartz w-full h-[475px]">
                             <AgGridReact
-                                rowData={rosterRankings}
+                                rowData={standings}
                                 columnDefs={leagueStateColDefs}
-                                context={{users}}
+                                context={{users, rosters}}
                             />
                         </div>
                     </div>

@@ -73,6 +73,21 @@ export type LeagueRoster = {
 
 export type LeagueRosterDict = { [rosterId: string]: LeagueRoster }
 
+export type RosterStandingsData = {
+    [key: number]: {
+        record: string,
+        wins: number,
+        losses: number,
+        overall_wins: number,
+        overall_losses: number,
+        points: number
+    }
+}
+
+export type WeeklyStandingsData = {
+    [key: number]: RosterStandingsData[]
+}
+
 export type TeamTransaction = {
     status: string,
     type: string,
