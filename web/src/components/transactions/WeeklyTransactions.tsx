@@ -1,9 +1,7 @@
 import { ResponsiveBar } from '@nivo/bar';
 import axios from "axios";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { LeagueRosterDict, LeagueUserDict, WeeklyTransactionsData } from '../../Types';
-import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { LeagueContext, RosterContext, UserContext } from '../../App';
 
 type Props = {}
@@ -22,13 +20,9 @@ export function WeeklyTransactions({}: Props) {
 
     const [transactionTypes, setTransactionTypes] = useState<string[]>([]);
     const [teamTransactionTotals, setTeamTransactionTotals] = useState<TeamTransactionsData[]>([]);
-    const [isTransactionsVisible, setIsTransactionsVisible] = useState<boolean>(false);
-	const [transactionsMaxHeight, setTransactionsMaxHeight] = useState<string>('0px');
-    
     const leagueId: string = useContext(LeagueContext).leagueId;
     const users: LeagueUserDict = useContext(UserContext);
     const rosters: LeagueRosterDict = useContext(RosterContext);
-    const contentRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         try {
@@ -83,29 +77,9 @@ export function WeeklyTransactions({}: Props) {
         }
     };
 
-    useEffect(() => {
-        if (contentRef.current) {
-            setTransactionsMaxHeight(isTransactionsVisible ? `${contentRef.current.scrollHeight}px` : "0px");
-        }
-    }, [isTransactionsVisible]);
-
     return (
         <div className='w-full border-b-2 border-gray-200'>
-            <div
-                onClick={() => setIsTransactionsVisible(!isTransactionsVisible)}
-                className={`w-1/6 flex justify-between items-center cursor-pointer py-2 pointer-events-auto ${isTransactionsVisible ? 'bg-gradient-to-r from-yellow-200 to-white' : 'hover:bg-gradient-to-r from-yellow-200 to-white'}`}
-                    >
-                <strong>Transactions per Team</strong> {<FontAwesomeIcon
-                    icon={faChevronDown}
-                    className={`ml-2 transform transition-transform duration-500
-                        ${isTransactionsVisible ? "-rotate-180" : "rotate-0"}`}/>
-                }
-            </div>
-            <div
-                ref={contentRef}
-                className="overflow-hidden transition-all duration-300 ease-in-out"
-                style={{ maxHeight: transactionsMaxHeight }}
-            >
+            <div className="overflow-hidden transition-all duration-300 ease-in-out">
                 <div className="flex-grow w-full h-[350px]">
                     <div className="flex items-center justify-between w-64">
                         <span className="text-sm font-semibold text-gray-800">Include Failed Waivers</span>

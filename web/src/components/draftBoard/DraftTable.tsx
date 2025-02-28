@@ -25,13 +25,11 @@ export type RankTooltipData = {
 }
 
 type Props = {
-    draft: DraftData,
-    onRendered: () => void
+    draft: DraftData
 }
 
 export function DraftTable({
-    draft,
-    onRendered
+    draft
 }: Props) {
     const API_URL = process.env.REACT_APP_API_URL;
 
@@ -126,10 +124,6 @@ export function DraftTable({
     const colDefs = useMemo(() => (
         generateDraftTableColDefs(users, orderedDraftUsers, handleAdpTooltipData, handleRankTooltipData)
     ), [users, orderedDraftUsers]);
-
-    useEffect(() => {
-        onRendered()
-    }, []);
 
     return (
         <div className="ag-theme-quartz w-full h-[750px]">

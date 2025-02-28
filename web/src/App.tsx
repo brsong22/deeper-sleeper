@@ -21,6 +21,25 @@ export const LeagueContext = createContext({leagueId: '', displayWeek: 0});
 export const UserContext = createContext({});
 export const RosterContext = createContext({});
 
+const tabs = [
+	{
+		id: 'summary',
+		label: 'Summary'
+	},
+	{
+		id: 'draft',
+		label: 'Draft Result'
+	},
+	{
+		id: 'standings',
+		label: 'Standings'
+	},
+	{
+		id: 'transactions',
+		label: 'Transactions'
+	}
+]
+
 function App() {
 	const API_URL = process.env.REACT_APP_API_URL;
 
@@ -31,6 +50,7 @@ function App() {
 	const [displayWeek, setDisplayWeek] = useState<number>(0);
 	const [leagueUsers, setLeagueUsers] = useState<LeagueUserDict>();
 	const [leagueRosters, setLeagueRosters] = useState<LeagueRosterDict>();
+	const [activeTab, setActiveTab] = useState<string>('summary');
 	const [missingLeagueMessage, setMissingLeagueMessage] = useState<string>('');
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	
@@ -135,48 +155,57 @@ function App() {
 				<span>Week: <strong>{displayWeek}</strong></span>
 			</div>
 			{
-				!isLoading ?
-					leagueId && leagueInfo && leagueRosters && leagueUsers ?
-						<div>
-							<div className='p-2 grid gap-y-3'>
-								<div className='mt-2 w-full justify-start gap-x-5 grid grid-flow-col'>
-									<div className='w-[225px] h-[177px]'>
-										<StandingsSnapshot leagueId={leagueId} week={displayWeek} rosters={leagueRosters} users={leagueUsers} />
-									</div>
-									<div className='w-[355px] h-[177px]'>
-										<WaiversSnapshot leagueId={leagueId} />
-									</div>
-								</div>
-								<div className="w-full border-t-2 border-gray-200">
-									<div className="flex flex-col w-full h-full row-start-3">
-										<LeagueContext.Provider value={{leagueId, displayWeek}}>
-											<UserContext.Provider value={leagueUsers}>
-												<RosterContext.Provider value={leagueRosters}>
-													<DraftBoard />
-													<LeagueStateTable />
-													<WeeklyStandings />
-													<WeeklyTransactions />
-												</RosterContext.Provider>
-											</UserContext.Provider>
-										</LeagueContext.Provider>
-									</div>
-								</div>
-							</div>
+				isLoading ?
+				<>
+					<span>Loading...</span>
+				</>
+				:
+				leagueId && leagueUsers && leagueRosters ?
+				<div>
+					<div className='p-2 gap-y-3 mt-2 w-full justify-start gap-x-5 grid grid-flow-col'>
+						<div className='w-[225px] h-[177px]'>
+							<StandingsSnapshot leagueId={leagueId} week={displayWeek} rosters={leagueRosters} users={leagueUsers} />
 						</div>
-						:
-						<div>
-							{missingLeagueMessage}
-							<br />
-							Set your Sleeper League ID above.
-							<br />
-							If your ID is correct, it will need to be added to the database (working on creating a process for data population requests)
-							<br />
-							<strong>For demo purposes you can use ID [1124596266089963520]</strong>
+						<div className='w-[355px] h-[177px]'>
+							<WaiversSnapshot leagueId={leagueId} />
 						</div>
-					:
-					<>
-						<span>Loading...</span>
-					</>
+					</div>
+					<div className="text-sm font-medium text-center text-black border-b border-gray-200 dark:text-gray-400 dark:border-gray-700">
+						<ul className="flex flex-wrap -mb-px">
+						{
+							tabs.map((tab) => (
+								<li key={`${tab.id}-tab-element`}>
+									<div onClick={() => setActiveTab(tab.id)} className={`hover:cursor-pointer inline-block p-4 border-b-2 border-transparent rounded-t-lg ${tab.id === activeTab ? 'text-blue-600 border-blue-600 dark:text-blue-500 dark:border-blue-500' : 'hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300'}`}>{tab.label}</div>
+								</li>
+							))
+						}
+						</ul>
+					</div>
+					<div className="w-full border-t-2 border-gray-200 flex">
+						<div className="flex flex-col flex-grow w-full h-full row-start-3">
+							<LeagueContext.Provider value={{leagueId, displayWeek}}>
+								<UserContext.Provider value={leagueUsers}>
+									<RosterContext.Provider value={leagueRosters}>
+										{activeTab === 'summary' && <LeagueStateTable />}
+										{activeTab === 'draft' && <DraftBoard />}
+										{activeTab === 'standings' && <WeeklyStandings />}
+										{activeTab === 'transactions' && <WeeklyTransactions />}
+									</RosterContext.Provider>
+								</UserContext.Provider>
+							</LeagueContext.Provider>
+						</div>
+					</div>
+				</div>
+				:
+				<div>
+					{missingLeagueMessage}
+					<br />
+					Set your Sleeper League ID above.
+					<br />
+					If your ID is correct, it will need to be added to the database (working on creating a process for data population requests)
+					<br />
+					<strong>For demo purposes you can use ID [1124596266089963520]</strong>
+				</div>
 			}
 		</>
 	)
