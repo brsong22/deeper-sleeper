@@ -1,5 +1,23 @@
 # deeper-sleeper
-Dive deeper into Sleeper fantasy football league stats
+Dive deeper into Sleeper fantasy football league stats.
+![Deeper Sleeper screenshot](images/deeper_sleeper_screenshot.png)
+
+#### Current Features:
+- **Snapshots**: quick views for top performers/various statistics
+![Podium + Top Waivers Snapshots](images/snapshots_example.png)
+- **Summary Table**: Table showing various general statistics for the league up to this point. The teams are listed in order of standing with sortable columns
+![Summary Table](images/summary_table_example.png)
+- **Draft Results Table**: A table showing the results of the season's draft. Includes thumbs up/down to show value of pick position vs adp as well as up/down arrows to show value of pick position vs season rank. There is also a dropdown to select and view other drafts if the league has multiple seasons and drafts data.
+![Draft Results Table](images/draft_results_table_example.png)
+- **Standings Bump Graph**: A Nivo bump graph to show the standings movement week-by-week. Includes hover effects to easily identify and follow the movement of specific teams.
+![Standings Bump Graph](images/standings_bump_graph_example.png)
+![Standings Bump Graph Hover Effect](images/standings_bump_graph_hover_example.png)
+- **Transactions Totals Bar Graph**: A Nivo bar graph to show the total transactions and types each team attempted. Includes a toggle to hide/show failed waivers.
+![Transactions Totals Bar Graph](images/transactions_totals_graph_example.png)
+![Transactions Totals With Failed Waivers Bar Graph](images/transactions_totals_with_failed_example.png)
+
+---
+---
 
 **Goal**: Provide my league with a website to track, visualize, and compare team performances throughout the season by pulling league data from [Sleeper's API](https://docs.sleeper.com/#introduction)
 
@@ -17,7 +35,7 @@ Dive deeper into Sleeper fantasy football league stats
 - Learn how to host a website using cloud services such as AWS.
 - Explore other tools and services, such as Github Actions, to build a modern, automated CI/CD pipeline.
 
-**Infrastructure Overview**
+**Infrastructure**
 
 I decided to host using AWS because of semi-familiarity with it's services and capabilities and because of its general popularity. The below services are what I ultimately used to be able to host the app with a publicly accessible website and to have a rudimentary deployment process.
 - **Elastic Container Service** (ECS): since I planned to use Docker to containerize the project locally, ECS seems like a good solution to easily transfer my Docker container definitions to AWS and host the containerized app. The app is organized into "api" and "web" code bases which will each have their own containers that are pushed to their separate ECR repositories.
