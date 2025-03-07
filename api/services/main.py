@@ -88,24 +88,13 @@ def get_league_snapshot(league_id: str, year: int, type: str):
     if type == 'waivers':
         return waivers_service.get_waivers_total_points(league_id, year)
     
-def get_per_week_points():
-    nfl_state = get_nfl_state()
-    league_info = get_league_info()
-    matchups = get_league_matchups(nfl_state['week'])
+def get_league_potential_points(league_id: str, year: int):
+    potential_points = db['league_potential_points'].find_one({'league_id': league_id, 'year': str(year)}, {'_id': 0})
+    if potential_points is not None:
+        potential_points = potential_points['potential_points']
+    
+    return potential_points
 
-    by_roster = defaultdict(dict)
-    for w, matches in matchups.items():
-        for m, rosters in matches.items():
-            for r, roster in rosters.items():
-                prev_points = by_roster.get(r, {}).get(str(int(w)-1), {}).get('points_scored_accum', 0)
-                total_points = round(roster['points'] + prev_points, 2)
-                by_roster[r][w] = {}
-                by_roster[r][w]['points_scored'] = roster['points']
-                by_roster[r][w]['points_scored_accum'] = total_points
-                collection = db['rosters_weekly_max']
-                by_roster[r][w]['max_points'] = collection.find_one({'week': str(w), 'roster_id': int(r), 'matchup_id': str(m), 'league_id': str(league_info['league_id'])})['max_points']
-
-    return by_roster
 
 def get_teams_transactions_count():
     nfl_state = get_nfl_state()
