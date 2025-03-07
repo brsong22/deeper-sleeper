@@ -46,9 +46,9 @@ async def get_league_matchups(league_id: str, year: int):
 async def get_league_draft_picks(league_id: str, draft_id: str):
     return Main.get_league_draft_picks(draft_id, league_id)
 
-@app.get('/league/{league_id}/points-per-week')
+@app.get('/league/{league_id}/potential-points-per-week')
 async def get_per_week_stats(league_id: str, year: int):
-    return Main.get_per_week_points()
+    return Main.get_league_potential_points(league_id, year)
 
 @app.get('/league/{league_id}/standings-per-week')
 async def get_rankings(league_id: str, year: int):
