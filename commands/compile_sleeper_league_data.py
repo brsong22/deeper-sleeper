@@ -16,7 +16,7 @@ from commands.matchups.compile_league_matchups_data import compile_league_matchu
 from commands.transactions.compile_league_transactions_data import compile_league_transactions
 from commands.standings.compile_league_standings_data import compile_league_standings
 from commands.drafts.compile_league_drafts_data import compile_league_drafts
-from commands.points.compile_league_max_points_data import compile_league_max_points
+from commands.points.compile_league_potential_points_data import compile_league_potential_points
 from commands.playoffs.compile_league_playoffs_bracket_data import compile_league_playoff_bracket
 #! > python -m commands.compile_weekly_sleeper_data
 
@@ -54,7 +54,7 @@ def compile_weekly_sleeper_data(update_players: bool, league_id: str):
         print('league standings...')
         compile_league_standings(matchups['matchups'], rosters['rosters'], year, regular_season_end-1, league_id)
         print('league max points...')
-        compile_league_max_points(matchups['matchups'], rosters['rosters'], info['league_info'], regular_season_end, league_id)
+        compile_league_potential_points(matchups['matchups'], rosters['rosters'], info['league_info'], regular_season_end, league_id)
         print('league drafts...')
         compile_league_drafts(league_id)
         print('league playoffs brackets...')
