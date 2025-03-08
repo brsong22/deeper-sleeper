@@ -131,6 +131,27 @@ export type TeamPointsPerWeek = {
     [key: string]: TeamPointsStats
 }
 
+type PlayerWeeklyData = {
+    id: string,
+    points: number,
+    positions: string[]
+}
+export type TeamPotentialData = {
+    ppf_max: number,
+    max_roster: {
+        [position: string]: PlayerWeeklyData[]
+    },
+    ppf_min: number,
+    min_roster: {
+        [position: string]: PlayerWeeklyData[]
+    }
+}
+export type TeamWeeklyPotentialPoints = {
+    [week: number]: {
+        [rosterId: number]: TeamPotentialData
+    }
+}
+
 export type SleeperWeeklyStats = {
     name: string,
     first: number,

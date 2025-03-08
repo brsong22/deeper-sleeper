@@ -1,4 +1,5 @@
 import { ColDef, ValueGetterParams } from 'ag-grid-community';
+import LeagueStatePointsCellRenderer from './LeagueStatePointsCellRenderer';
 
 export const leagueStateColDefs: ColDef[] = [
     {
@@ -44,17 +45,13 @@ export const leagueStateColDefs: ColDef[] = [
     },
     {
         headerName: 'Points Scored',
-        valueGetter: (r: ValueGetterParams) => r.data.points,
-        flex: 1,
-        cellStyle: {
-            textAlign: 'left'
-        }
-    },
-    {
-        // ! UPDATE THIS WITH ACTUAL POINTS MAXED FROM OUR CALCULATED DATA
-        headerName: 'Points Max',
-        valueGetter: (r: ValueGetterParams) => parseFloat(`${r.context.rosters[r.data.rosterId].settings.ppts}.${r.context.rosters[r.data.rosterId].settings.ppts_decimal}`),
-        flex: 1,
+        cellRenderer: LeagueStatePointsCellRenderer,
+        cellRendererParams: (params: any) => ({
+            max: params.context.potentialPoints[params.data.rosterId].max,
+            min: params.context.potentialPoints[params.data.rosterId].min,
+            actual: params.data.points
+        }),
+        flex: 2,
         cellStyle: {
             textAlign: 'left'
         }
