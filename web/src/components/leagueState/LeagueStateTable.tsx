@@ -12,6 +12,10 @@ type TeamPotentialPoints = {
 type RostersPotentialPoints = {
     [key: string]: TeamPotentialPoints
 }
+type LeagueMinMaxPotentialPoints = {
+    absMax: number,
+    absMin: number
+}
 type Props = {}
 
 export function LeagueStateTable({}: Props) {
@@ -19,6 +23,7 @@ export function LeagueStateTable({}: Props) {
 
     const [standings, setStandings] = useState<RosterStandingsData[]>([]);
     const [potentialPoints, setPotentialPoints] = useState<RostersPotentialPoints>();
+    const [leaguePotentialPoints, setLeaguePotentialPoints] = useState<LeagueMinMaxPotentialPoints>();
     const {leagueId, displayWeek} = useContext(LeagueContext);
     const users: LeagueUserDict = useContext(UserContext);
     const rosters: LeagueRosterDict = useContext(RosterContext)
@@ -57,6 +62,7 @@ export function LeagueStateTable({}: Props) {
             .then(response => {
                 const data: TeamWeeklyPotentialPoints = response.data;
                 const teamPotentialPoints: RostersPotentialPoints = {};
+                const leaguePotentialPoints: LeagueMinMaxPotentialPoints = {absMax: 0, absMin: 99999}
                 Object.values(data).forEach((rosters) => {
                     Object.entries(rosters).forEach(([rosterId, rosterData]) => {
                         if (!teamPotentialPoints[rosterId]) {
@@ -70,6 +76,11 @@ export function LeagueStateTable({}: Props) {
                         }
                     });
                 });
+                Object.values(teamPotentialPoints).forEach((rosterPotentials) => {
+                    leaguePotentialPoints['absMax'] = rosterPotentials['max'] > leaguePotentialPoints['absMax'] ? rosterPotentials['max'] : leaguePotentialPoints['absMax'];
+                    leaguePotentialPoints['absMin'] = rosterPotentials['min'] < leaguePotentialPoints['absMin'] ? rosterPotentials['min'] : leaguePotentialPoints['absMin'];
+                });
+                setLeaguePotentialPoints(leaguePotentialPoints)
                 setPotentialPoints(teamPotentialPoints);
             });
         } catch (error) {
@@ -87,7 +98,7 @@ export function LeagueStateTable({}: Props) {
                                 <AgGridReact
                                     rowData={standings}
                                     columnDefs={leagueStateColDefs}
-                                    context={{users, rosters, potentialPoints}}
+                                    context={{users, rosters, potentialPoints, leaguePotentialPoints}}
                                 />
                             }
                         </div>
