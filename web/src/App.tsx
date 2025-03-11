@@ -1,6 +1,7 @@
 import { createContext, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import './App.css'
+import './index.css'
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import {
@@ -150,8 +151,8 @@ function App() {
     };
 
 	return (
-		<>
-			<div className='pl-5 w-full h-20 items-center text-lg flex justify-start gap-x-10' style={{ backgroundColor: bannerColor }}>
+		<div className='w-full app-container'>
+			<div className='app-header sticky z-1 top-0 pl-5 w-full h-20 items-center text-lg flex justify-start gap-x-10' style={{ backgroundColor: bannerColor }}>
 				{
 					editLeagueId || (!leagueInfo || !leagueRosters || !leagueUsers) ?
 						<>
@@ -194,7 +195,7 @@ function App() {
 				<LeagueContext.Provider value={{leagueId, selectedYear, displayWeek}}>
 					<UserContext.Provider value={leagueUsers}>
 						<RosterContext.Provider value={leagueRosters}>
-							<div>
+							<div className="w-full h-full flex flex-col">
 								<div className='p-2 gap-y-3 mt-2 w-full justify-start gap-x-5 grid grid-flow-col'>
 									<div className='w-[225px] h-[177px]'>
 										<StandingsSnapshot />
@@ -214,13 +215,11 @@ function App() {
 									}
 									</ul>
 								</div>
-								<div className="w-full border-t-2 border-gray-200 flex">
-									<div className="flex flex-col flex-grow w-full h-full row-start-3">
-										{activeTab === 'summary' && <LeagueStateTable />}
-										{activeTab === 'draft' && <DraftBoard />}
-										{activeTab === 'standings' && <WeeklyStandings />}
-										{activeTab === 'transactions' && <WeeklyTransactions />}
-									</div>
+								<div className="w-full h-full flex flex-col flex-grow">
+									{activeTab === 'summary' && <LeagueStateTable />}
+									{activeTab === 'draft' && <DraftBoard />}
+									{activeTab === 'standings' && <WeeklyStandings />}
+									{activeTab === 'transactions' && <WeeklyTransactions />}
 								</div>
 							</div>
 						</RosterContext.Provider>
@@ -235,7 +234,7 @@ function App() {
 					<strong>For demo purposes you can use ID [1124596266089963520]</strong>
 				</div>
 			}
-		</>
+		</div>
 	)
 }
 

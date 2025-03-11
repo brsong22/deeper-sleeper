@@ -1,6 +1,6 @@
 import { ResponsiveBump } from "@nivo/bump";
 import axios from "axios";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import {
 	LeagueUserDict,
 	LeagueRosterDict
@@ -75,62 +75,69 @@ export function WeeklyStandings({}: Props) {
         }
     }, [API_URL, leagueId, rosters, selectedYear, users]);
 
+    const [gridHeight, setGridHeight] = useState<number>();
+    const parentRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (parentRef.current) {
+            setGridHeight(parentRef.current.clientHeight)
+        }
+    }, []);
+
     return (
-        <div className='w-full border-b-2 border-gray-200'>
-            <div className="overflow-hidden transition-all duration-300 ease-in-out">
-                <div className="flex-grow w-full h-[350px]">
-                    {// @ts-ignore
-                        <ResponsiveBump
-                            data={weeklyStandings}
-                            colors={{ scheme: 'tableau10' }}
-                            lineWidth={3}
-                            activeLineWidth={6}
-                            inactiveLineWidth={3}
-                            inactiveOpacity={0.15}
-                            pointSize={10}
-                            activePointSize={16}
-                            inactivePointSize={0}
-                            pointColor={{ theme: 'background' }}
-                            pointBorderWidth={3}
-                            activePointBorderWidth={3}
-                            pointBorderColor={{ from: 'serie.color' }}
-                            axisTop={{
-                                tickSize: 5,
-                                tickPadding: 5,
-                                tickRotation: 0,
-                                legend: '',
-                                legendPosition: 'middle',
-                                legendOffset: -36,
-                                truncateTickAt: 0
-                            }}
-                            axisBottom={{
-                                tickSize: 5,
-                                tickPadding: 5,
-                                tickRotation: 0,
-                                legend: 'week',
-                                legendPosition: 'middle',
-                                legendOffset: 32,
-                                truncateTickAt: 0
-                            }}
-                            axisLeft={{
-                                tickSize: 5,
-                                tickPadding: 5,
-                                tickRotation: 0,
-                                legend: 'standing',
-                                legendPosition: 'middle',
-                                legendOffset: -40,
-                                truncateTickAt: 0
-                            }}
-                            axisRight={{
-                                tickSize: 5,
-                                tickPadding: 5,
-                                tickRotation: 0,
-                                truncateTickAt: 0
-                            }}
-                            margin={{ top: 40, right: 100, bottom: 40, left: 60 }}
-                        />
-                    }
-                </div>
+        <div ref={parentRef} className='w-full h-full'>
+            <div className="flex-grow w-full" style={{height: gridHeight}}>
+                {// @ts-ignore
+                    <ResponsiveBump
+                        data={weeklyStandings}
+                        colors={{ scheme: 'tableau10' }}
+                        lineWidth={3}
+                        activeLineWidth={6}
+                        inactiveLineWidth={3}
+                        inactiveOpacity={0.15}
+                        pointSize={10}
+                        activePointSize={16}
+                        inactivePointSize={0}
+                        pointColor={{ theme: 'background' }}
+                        pointBorderWidth={3}
+                        activePointBorderWidth={3}
+                        pointBorderColor={{ from: 'serie.color' }}
+                        axisTop={{
+                            tickSize: 5,
+                            tickPadding: 5,
+                            tickRotation: 0,
+                            legend: '',
+                            legendPosition: 'middle',
+                            legendOffset: -36,
+                            truncateTickAt: 0
+                        }}
+                        axisBottom={{
+                            tickSize: 5,
+                            tickPadding: 5,
+                            tickRotation: 0,
+                            legend: 'week',
+                            legendPosition: 'middle',
+                            legendOffset: 32,
+                            truncateTickAt: 0
+                        }}
+                        axisLeft={{
+                            tickSize: 5,
+                            tickPadding: 5,
+                            tickRotation: 0,
+                            legend: 'standing',
+                            legendPosition: 'middle',
+                            legendOffset: -40,
+                            truncateTickAt: 0
+                        }}
+                        axisRight={{
+                            tickSize: 5,
+                            tickPadding: 5,
+                            tickRotation: 0,
+                            truncateTickAt: 0
+                        }}
+                        margin={{ top: 40, right: 100, bottom: 40, left: 60 }}
+                    />
+                }
             </div>
         </div>
     )

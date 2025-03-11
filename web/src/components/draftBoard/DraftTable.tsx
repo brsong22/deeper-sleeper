@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import axios from 'axios';
 import { DraftData, DraftPick, LeagueUserDict, PlayerAdp, PlayerProjection, PlayerRanking } from '../../Types';
 import { AgGridReact } from 'ag-grid-react';
@@ -121,23 +121,34 @@ export function DraftTable({
         }
     }, [draftPicks, playerAdps, playerRankings]);
 
+    const [gridHeight, setGridHeight] = useState<number>();
+    const parentRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (parentRef.current) {
+            setGridHeight(parentRef.current.clientHeight)
+        }
+    }, []);
+
     const colDefs = useMemo(() => (
         generateDraftTableColDefs(users, orderedDraftUsers, handleAdpTooltipData, handleRankTooltipData)
     ), [users, orderedDraftUsers]);
 
     return (
-        <div className="ag-theme-quartz w-full h-[750px]">
-            {
-                roundsDataReady &&
-                <AgGridReact
-                    rowHeight={75}
-                    rowData={draftPicksByRoundData}
-                    columnDefs={colDefs}
-                    columnHoverHighlight
-                />
-            }
-            <Tooltip id='adpIconTooltip' place='left' render={() => <DraftPickCellAdpTooltip adpData={adpTooltipData}/>}/>
-            <Tooltip id='rankIconTooltip' place='right' render={() => <DraftPickCellRankTooltip rankData={rankTooltipData}/>}/>
+        <div ref={parentRef} className='w-full h-full'>
+            <div className="ag-theme-quartz w-full" style={{height: gridHeight}}>
+                {
+                    roundsDataReady &&
+                    <AgGridReact
+                        rowHeight={75}
+                        rowData={draftPicksByRoundData}
+                        columnDefs={colDefs}
+                        columnHoverHighlight
+                    />
+                }
+                <Tooltip id='adpIconTooltip' place='left' render={() => <DraftPickCellAdpTooltip adpData={adpTooltipData}/>}/>
+                <Tooltip id='rankIconTooltip' place='right' render={() => <DraftPickCellRankTooltip rankData={rankTooltipData}/>}/>
+            </div>
         </div>
     )
 }

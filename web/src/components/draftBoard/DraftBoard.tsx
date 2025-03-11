@@ -25,13 +25,11 @@ export function DraftBoard({}: Props) {
     }, [leagueId, year]);
 
     return (
-        <div className='w-full border-b-2 border-gray-200'>
-            <div className="overflow-hidden transition-all duration-300 ease-in-out">
-                {
-                    draft &&
-                        <DraftTable draft={draft}/>
-                }
-            </div>
+        <div className='w-full h-full'>
+            {
+                draft &&
+                <DraftTable draft={draft}/>
+            }
         </div>
     )
 }

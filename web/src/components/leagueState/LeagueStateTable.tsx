@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { LeagueRosterDict, LeagueUserDict, RosterStandingsData, TeamWeeklyPotentialPoints } from '../../Types';
 import { AgGridReact } from 'ag-grid-react';
 import { leagueStateColDefs } from './LeagueStateColDefs';
@@ -88,22 +88,25 @@ export function LeagueStateTable({}: Props) {
         }
     }, [leagueId]);
 
+    const [gridHeight, setGridHeight] = useState<number>();
+    const parentRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (parentRef.current) {
+            setGridHeight(parentRef.current.clientHeight)
+        }
+    }, []);
+
     return (
-        <div className='w-full border-b-2 border-gray-200'>
-            <div className="overflow-hidden transition-all duration-300 ease-in-out">
-                <div className="row-start-1 w-full">
-                    <div className="w-full min-h-[250px]">
-                        <div className="ag-theme-quartz w-full h-[475px]">
-                            {potentialPoints &&
-                                <AgGridReact
-                                    rowData={standings}
-                                    columnDefs={leagueStateColDefs}
-                                    context={{users, rosters, potentialPoints, leaguePotentialPoints}}
-                                />
-                            }
-                        </div>
-                    </div>
-                </div>
+        <div ref={parentRef} className='w-full h-full'>
+            <div className="ag-theme-quartz w-full" style={{height: gridHeight}}>
+                {potentialPoints &&
+                    <AgGridReact
+                        rowData={standings}
+                        columnDefs={leagueStateColDefs}
+                        context={{users, rosters, potentialPoints, leaguePotentialPoints}}
+                    />
+                }
             </div>
         </div>
     )

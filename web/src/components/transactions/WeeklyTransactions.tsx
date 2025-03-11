@@ -1,6 +1,6 @@
 import { ResponsiveBar } from '@nivo/bar';
 import axios from "axios";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { LeagueRosterDict, LeagueUserDict, WeeklyTransactionsData } from '../../Types';
 import { LeagueContext, RosterContext, UserContext } from '../../App';
 
@@ -77,18 +77,27 @@ export function WeeklyTransactions({}: Props) {
         }
     };
 
+    const [gridHeight, setGridHeight] = useState<number>();
+    const parentRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (parentRef.current) {
+            setGridHeight(parentRef.current.clientHeight)
+        }
+    }, []);
+
     return (
-        <div className='w-full border-b-2 border-gray-200'>
-            <div className="overflow-hidden transition-all duration-300 ease-in-out">
-                <div className="flex-grow w-full h-[350px]">
-                    <div className="flex items-center justify-between w-64">
-                        <span className="text-sm font-semibold text-gray-800">Include Failed Waivers</span>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" className="sr-only peer" onChange={handleToggle}/>
-                            <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-400 peer-checked:bg-green-600"></div>
-                            <div className="absolute left-0.5 top-0.5 w-5 h-5 bg-white border border-gray-300 rounded-full transition-transform peer-checked:translate-x-full"></div>
-                        </label>
-                    </div>
+        <>
+            <div className="flex items-center justify-between w-64 p-4">
+                <span className="text-sm font-semibold text-gray-800">Include Failed Waivers</span>
+                <label className="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" className="sr-only peer" onChange={handleToggle}/>
+                    <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-400 peer-checked:bg-green-600"></div>
+                    <div className="absolute left-0.5 top-0.5 w-5 h-5 bg-white border border-gray-300 rounded-full transition-transform peer-checked:translate-x-full"></div>
+                </label>
+            </div>
+            <div ref={parentRef} className='w-full flex-grow'>
+                <div className="w-full" style={{height: gridHeight}}>
                     <ResponsiveBar
                         data={teamTransactionTotals}
                         keys={transactionTypes}
@@ -167,7 +176,7 @@ export function WeeklyTransactions({}: Props) {
                     />
                 </div>
             </div>
-        </div>
+        </>
     )
 }
 
