@@ -1,8 +1,9 @@
 import axios from 'axios';
-import { useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { WaiverSnapshotData } from '../../Types';
 import { SnapshotTable } from '../snapshotTable/SnapshotTable';
 import { getRankAttributes } from '../snapshotTable/Utils';
+import { LeagueContext } from '../../App';
 
 type TopWaiver = {
     faab: number,
@@ -20,16 +21,15 @@ type SnapshotRow = {
     icon?: React.ReactElement,
     iconStyle: string
 }
-type Props = {
-    leagueId: string
-}
+type Props = {}
 
-export function WaiversSnapshot({
-    leagueId
-}: Props) {
+export function WaiversSnapshot({}: Props) {
     const API_URL = process.env.REACT_APP_API_URL;
 
     const [topWaivers, setTopWaivers] = useState<TopWaiver[]>([]);
+
+    const {leagueId} = useContext(LeagueContext);
+
     const topWaiversHeader = 'Top Waivers (total pts / weeks played)';
 
     const topWaiversCellRenderer = (row: any) => (
@@ -39,7 +39,7 @@ export function WaiversSnapshot({
     );
 
     useEffect(() => {
-        axios.get(`${API_URL}/league/${leagueId}/snapshot`, {
+        axios.get(`${API_URL}/leagues/${leagueId}/snapshot`, {
             params: {
                 year: 2024,
                 type: 'waivers'

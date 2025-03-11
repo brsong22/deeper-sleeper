@@ -26,7 +26,7 @@ export function WeeklyTransactions({}: Props) {
 
     useEffect(() => {
         try {
-            axios.get(`${API_URL}/league/${leagueId}/transactions-per-week`, {
+            axios.get(`${API_URL}/leagues/${leagueId}/transactions-per-week`, {
                 params: {
                     year: 2024
                 }

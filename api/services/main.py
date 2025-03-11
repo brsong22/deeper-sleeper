@@ -9,11 +9,11 @@ LEAGUE_ID = os.getenv('LEAGUE_ID')
 
 db = get_db()
 
-def init(year: int, league_id = LEAGUE_ID):
+def init(league_id: str, year: int):
     try:
-        league_info = get_league_info(year, league_id)
-        league_users = get_league_users(year, league_id)
-        league_rosters = get_league_rosters(year, league_id)
+        league_info = get_league_info(league_id, year)
+        league_users = get_league_users(league_id, year)
+        league_rosters = get_league_rosters(league_id, year)
 
         return {
             'league_info': league_info,
@@ -23,6 +23,11 @@ def init(year: int, league_id = LEAGUE_ID):
     except Exception as e:
         print(e)
         return False
+
+def get_league_years(league_id: str):
+    years = db['league_info'].find({'league_id': league_id}, {'year': 1, '_id': 0}).sort('year', -1)
+    
+    return [y['year'] for y in years]
 
 def get_nfl_state():
     nfl_state = sleeper.get_nfl_state()
@@ -34,50 +39,54 @@ def get_players(year: int):
 
     return nfl_players
 
-def get_league_info(year: int, league_id: str = LEAGUE_ID):
+def get_league_info(league_id: str, year: int):
     league_info = db['league_info'].find_one({'league_id': league_id, 'year': str(year)}, {'_id': 0})
 
     return league_info
 
-def get_league_users(year: int, league_id: str = LEAGUE_ID):
+def get_league_users(league_id: str, year: int):
     league_users_by_id = db['league_users'].find_one({'league_id': league_id, 'year': str(year)}, {'_id': 0})
     if league_users_by_id is not None:
         league_users_by_id = league_users_by_id['users']
     
     return league_users_by_id
 
-def get_league_drafts(league_id: str = LEAGUE_ID):
-    league_drafts = db['league_drafts'].find({'league_id': league_id}, {'_id': 0})
+def get_league_drafts(league_id: str, year: int = None):
+    filter = {'league_id': league_id}
+    if year is not None:
+        filter['year'] = str(year)
+
+    league_drafts = db['league_drafts'].find(filter, {'_id': 0})
 
     return list(league_drafts)
 
-def get_league_draft_picks(draft_id: str, league_id: str = LEAGUE_ID):
+def get_league_draft_picks(league_id: str, draft_id: str):
     draft_picks = db['league_draft_picks'].find({'league_id': league_id, 'draft_id': draft_id}, {'_id': 0}).sort('pick_no', 1)
 
     return list(draft_picks)
 
-def get_league_rosters(year: int, league_id: str = LEAGUE_ID):
+def get_league_rosters(league_id: str, year: int):
     league_rosters_by_id = db['league_rosters'].find_one({'league_id': league_id, 'year': str(year)}, {'_id': 0})
     if league_rosters_by_id is not None:
         league_rosters_by_id = league_rosters_by_id['rosters']
 
     return league_rosters_by_id
 
-def get_league_matchups(year: int, league_id: str = LEAGUE_ID):
+def get_league_matchups(league_id: str, year: int):
     league_matchups = db['league_matchups'].find_one({'league_id': league_id, 'year': str(year)}, {'_id': 0})
     if league_matchups is not None:
         league_matchups = league_matchups['matchups']
 
     return league_matchups
 
-def get_league_transactions(year: int, league_id: str = LEAGUE_ID):
+def get_league_transactions(league_id: str, year: int):
     league_transactions = db['league_transactions'].find_one({'league_id': league_id, 'year': str(year)}, {'_id': 0})
     if league_transactions is not None:
         league_transactions = league_transactions['transactions']
     
     return league_transactions
 
-def get_league_standings(year: int, league_id: str = LEAGUE_ID):
+def get_league_standings(league_id: str, year: int):
     league_standings = db['league_standings'].find_one({'league_id': league_id, 'year': str(year)}, {'_id': 0})
     if league_standings is not None:
         league_standings = league_standings['standings']

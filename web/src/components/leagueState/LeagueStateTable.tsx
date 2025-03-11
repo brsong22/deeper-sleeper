@@ -30,7 +30,7 @@ export function LeagueStateTable({}: Props) {
 
     useEffect(() => {
         try {
-            axios.get(`${API_URL}/league/${leagueId}/standings-per-week`, {
+            axios.get(`${API_URL}/leagues/${leagueId}/standings-per-week`, {
                 params: {
                     year: 2024
                 }
@@ -48,13 +48,13 @@ export function LeagueStateTable({}: Props) {
                 }));
             });
         } catch (error) {
-            console.error('Error fetching data:', error);
+            console.error('Error fetching data');
         }
     }, [leagueId]);
 
     useEffect(() => {
         try {
-            axios.get(`${API_URL}/league/${leagueId}/potential-points-per-week`, {
+            axios.get(`${API_URL}/leagues/${leagueId}/potential-points-per-week`, {
                 params: {
                     year: 2024
                 }
@@ -84,7 +84,7 @@ export function LeagueStateTable({}: Props) {
                 setPotentialPoints(teamPotentialPoints);
             });
         } catch (error) {
-            console.log('Error fetching data:', error);
+            console.log('Error fetching data');
         }
     }, [leagueId]);
 

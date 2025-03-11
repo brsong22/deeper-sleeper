@@ -22,15 +22,15 @@ export function WeeklyStandings({}: Props) {
     const API_URL = process.env.REACT_APP_API_URL;
 
     const [weeklyStandings, setWeeklyStandings] = useState<StandingsData[]>([]);
-    const leagueId: string = useContext(LeagueContext).leagueId;
+    const {leagueId, selectedYear} = useContext(LeagueContext);
     const users: LeagueUserDict = useContext(UserContext);
     const rosters: LeagueRosterDict = useContext(RosterContext);
     
     useEffect(() => {
         try {
-            axios.get(`${API_URL}/league/${leagueId}/standings-per-week`, {
+            axios.get(`${API_URL}/leagues/${leagueId}/standings-per-week`, {
                 params: {
-                    year: 2024
+                    year: selectedYear
                 }
             })
             .then(response => {
@@ -73,7 +73,7 @@ export function WeeklyStandings({}: Props) {
         } catch (error) {
             console.error('Error fetching standings-per-week:', error);
         }
-    }, [API_URL, leagueId, rosters, users]);
+    }, [API_URL, leagueId, rosters, selectedYear, users]);
 
     return (
         <div className='w-full border-b-2 border-gray-200'>

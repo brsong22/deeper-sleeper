@@ -25,41 +25,45 @@ get_env()
 async def healthstatus():
     return {"message": 'ok'}
 
-@app.get('/league/{league_id}')
-async def init(league_id: str, year: int) -> None:
-    if not (res := Main.init(year, league_id)):
+@app.get('/leagues/{league_id}')
+async def init(league_id: str, year: int = Query(...)) -> None:
+    if not (res := Main.init(league_id, year)):
         print(res)
         raise HTTPException(status_code=500, detail="Error occurred retrieving resources.")
     if not res['league_info'] or not res['league_users'] or not res['league_rosters']:
         raise HTTPException(status_code=404, detail="Could not find league records.")
     return res
 
-@app.get('/league/{league_id}/drafts')
-async def get_league_drafts(league_id: str):
-    return Main.get_league_drafts(league_id)
+@app.get('/leagues/{league_id}/years')
+async def get_league_years(league_id: str):
+    return Main.get_league_years(league_id)
 
-@app.get('/league/{league_id}/matchups-per-week')
-async def get_league_matchups(league_id: str, year: int):
-    return Main.get_league_matchups(year, league_id)
+@app.get('/leagues/{league_id}/drafts')
+async def get_league_drafts(league_id: str, year: int = Query(None)):
+    return Main.get_league_drafts(league_id, year)
 
-@app.get('/league/{league_id}/drafts/{draft_id}')
+@app.get('/leagues/{league_id}/matchups-per-week')
+async def get_league_matchups(league_id: str, year: int = Query(...)):
+    return Main.get_league_matchups(league_id, year)
+
+@app.get('/leagues/{league_id}/drafts/{draft_id}')
 async def get_league_draft_picks(league_id: str, draft_id: str):
-    return Main.get_league_draft_picks(draft_id, league_id)
+    return Main.get_league_draft_picks(league_id, draft_id)
 
-@app.get('/league/{league_id}/potential-points-per-week')
-async def get_per_week_stats(league_id: str, year: int):
+@app.get('/leagues/{league_id}/potential-points-per-week')
+async def get_per_week_stats(league_id: str, year: int = Query(...)):
     return Main.get_league_potential_points(league_id, year)
 
-@app.get('/league/{league_id}/standings-per-week')
-async def get_rankings(league_id: str, year: int):
-    return Main.get_league_standings(year, league_id)
+@app.get('/leagues/{league_id}/standings-per-week')
+async def get_rankings(league_id: str, year: int = Query(...)):
+    return Main.get_league_standings(league_id, year)
 
-@app.get('/league/{league_id}/transactions-per-week')
-async def get_transactions_count(league_id: str, year: int):
-    return Main.get_league_transactions(year, league_id)
+@app.get('/leagues/{league_id}/transactions-per-week')
+async def get_transactions_count(league_id: str, year: int = Query(...)):
+    return Main.get_league_transactions(league_id, year)
 
-@app.get('/league/{league_id}/snapshot')
-async def get_snapshot(league_id: str, year: int, type: str):
+@app.get('/leagues/{league_id}/snapshot')
+async def get_snapshot(league_id: str, year: int = Query(...), type: str = Query(...)):
     return Main.get_league_snapshot(league_id, year, type)
 
 @app.get('/players')

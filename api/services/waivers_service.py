@@ -1,10 +1,10 @@
 from api.services import main
 
 def get_waivers_total_points(league_id: str, year: int):
-    users = main.get_league_users(year, league_id)
-    rosters = main.get_league_rosters(year, league_id)
-    matchups_by_week = main.get_league_matchups(year, league_id)
-    transactions_by_week = main.get_league_transactions(year, league_id)
+    users = main.get_league_users(league_id, year)
+    rosters = main.get_league_rosters(league_id, year)
+    matchups_by_week = main.get_league_matchups(league_id, year)
+    transactions_by_week = main.get_league_transactions(league_id, year)
 
     waiver_player_ids = set()
     completed_waivers_by_roster = {}

@@ -15,9 +15,15 @@ import DraftBoard from './components/draftBoard/DraftBoard';
 import StandingsSnapshot from './components/snapshots/StandingsSnapshot';
 import WaiversSnapshot from './components/snapshots/WaiversSnapshot';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck, faPencil } from '@fortawesome/free-solid-svg-icons';
+import { faPencil } from '@fortawesome/free-solid-svg-icons';
 
-export const LeagueContext = createContext({leagueId: '', displayWeek: 0});
+type LeagueContextType = {
+	leagueId: string;
+	selectedYear: number;
+	displayWeek: number;
+  };
+
+export const LeagueContext = createContext<LeagueContextType>({leagueId: '', selectedYear: 0, displayWeek: 0});
 export const UserContext = createContext({});
 export const RosterContext = createContext({});
 
@@ -44,6 +50,8 @@ function App() {
 	const API_URL = process.env.REACT_APP_API_URL;
 
 	const [leagueId, setLeagueId] = useState<string>('');
+	const [leagueYears, setLeagueYears] = useState<number[]>([]);
+	const [selectedYear, setSelectedYear] = useState<number>();
 	const [leagueIdInputValue, setLeagueIdInputValue] = useState<string>('');
 	const [editLeagueId, setEditLeagueId] = useState<boolean>(false);
 	const [leagueInfo, setLeagueInfo] = useState<LeagueInfo>();
@@ -51,16 +59,32 @@ function App() {
 	const [leagueUsers, setLeagueUsers] = useState<LeagueUserDict>();
 	const [leagueRosters, setLeagueRosters] = useState<LeagueRosterDict>();
 	const [activeTab, setActiveTab] = useState<string>('summary');
-	const [missingLeagueMessage, setMissingLeagueMessage] = useState<string>('');
 	const [isLoading, setIsLoading] = useState<boolean>(false);
-	
+
 	useEffect(() => {
 		if (leagueId) {
 			try {
+				axios.get(`${API_URL}/leagues/${leagueId}/years`)
+				.then(response => {
+					const data = response.data;
+					setLeagueYears(data);
+					if (data) {
+						setSelectedYear(data[0]);
+					}
+				});
+			} catch (error) {
+				console.log(`An error occured fetching data`);
+			}
+		}
+	}, [API_URL, leagueId]);
+	
+	useEffect(() => {
+		if (leagueId && selectedYear) {
+			try {
 				setIsLoading(true);
-				axios.get(`${API_URL}/league/${leagueId}`, {
+				axios.get(`${API_URL}/leagues/${leagueId}`, {
 					params: {
-						year: 2024
+						year: selectedYear
 					}
 				})
 				.then(response => {
@@ -77,7 +101,6 @@ function App() {
 					}
 				}).catch(error => {
 					if (error.response.status === 404) {
-						setMissingLeagueMessage(error.response.data.detail);
 						setLeagueId(leagueId);
 						setLeagueInfo(undefined);
 						setLeagueUsers(undefined);
@@ -91,16 +114,8 @@ function App() {
 			} catch (error) {
 				console.error('Error fetching data:', error);
 			}
-		} else {
-			setMissingLeagueMessage('No Sleeper League ID set.');
-			setLeagueId('');
-			setLeagueIdInputValue('');
-			setLeagueInfo(undefined);
-			setLeagueUsers(undefined);
-			setLeagueRosters(undefined);
-			setEditLeagueId(true);
 		}
-	}, [API_URL, leagueId]);
+	}, [API_URL, leagueId, selectedYear]);
 
 	const bannerColor = useMemo(() => {
 		switch (leagueInfo?.status) {
@@ -126,10 +141,13 @@ function App() {
 			setLeagueRosters(undefined);
 			setEditLeagueId(false);
 		} else {
-			setMissingLeagueMessage('Invalid Sleeper ID value.');
 			setLeagueIdInputValue(leagueId);
 		}
 	}
+
+	const handleYearChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedYear(parseInt(event.target.value, 10));
+    };
 
 	return (
 		<>
@@ -140,7 +158,7 @@ function App() {
 							<span>
 								League:
 								<input className='ml-1 p-1 rounded-md' type='text' pattern='\d*' inputMode='numeric' value={leagueIdInputValue} onChange={(e) => setLeagueIdInputValue(e.target.value)} placeholder='Sleeper League ID'/>
-								<FontAwesomeIcon className='ml-2 bg-green-200 text-sm' icon={faCheck} onClick={leagueIdSubmitHandler} cursor='pointer'/>
+								<button className='ml-2 p-1 bg-green-300 hover:bg-green-500 rounded-md text-sm' onClick={leagueIdSubmitHandler}>Fetch League!</button>
 							</span>
 						</>
 						:
@@ -151,8 +169,20 @@ function App() {
 							</span>
 						</>
 				}
-				<span>Status: <strong>{leagueInfo?.status}</strong></span>
+				<label>
+					Year:
+					<select value={selectedYear} onChange={handleYearChange} name="leagueYearSelect" className="ml-2 p-1 rounded-md font-bold">
+                        {
+                            Object.values(leagueYears).map((year, index) => (
+                                <option key={`league-${year}-${index}`} value={year}>
+                                    {year}
+                                </option>
+                            ))
+                        }
+                    </select>
+				</label>
 				<span>Week: <strong>{displayWeek}</strong></span>
+				<span>Status: <strong>{leagueInfo?.status}</strong></span>
 			</div>
 			{
 				isLoading ?
@@ -160,46 +190,44 @@ function App() {
 					<span>Loading...</span>
 				</>
 				:
-				leagueId && leagueUsers && leagueRosters ?
-				<div>
-					<div className='p-2 gap-y-3 mt-2 w-full justify-start gap-x-5 grid grid-flow-col'>
-						<div className='w-[225px] h-[177px]'>
-							<StandingsSnapshot leagueId={leagueId} week={displayWeek} rosters={leagueRosters} users={leagueUsers} />
-						</div>
-						<div className='w-[355px] h-[177px]'>
-							<WaiversSnapshot leagueId={leagueId} />
-						</div>
-					</div>
-					<div className="text-sm font-medium text-center text-black border-b border-gray-200 dark:text-gray-400 dark:border-gray-700">
-						<ul className="flex flex-wrap -mb-px">
-						{
-							tabs.map((tab) => (
-								<li key={`${tab.id}-tab-element`}>
-									<div onClick={() => setActiveTab(tab.id)} className={`hover:cursor-pointer inline-block p-4 border-b-2 border-transparent rounded-t-lg ${tab.id === activeTab ? 'text-blue-600 border-blue-600 dark:text-blue-500 dark:border-blue-500' : 'hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300'}`}>{tab.label}</div>
-								</li>
-							))
-						}
-						</ul>
-					</div>
-					<div className="w-full border-t-2 border-gray-200 flex">
-						<div className="flex flex-col flex-grow w-full h-full row-start-3">
-							<LeagueContext.Provider value={{leagueId, displayWeek}}>
-								<UserContext.Provider value={leagueUsers}>
-									<RosterContext.Provider value={leagueRosters}>
+				leagueId && selectedYear && leagueUsers && leagueRosters ?
+				<LeagueContext.Provider value={{leagueId, selectedYear, displayWeek}}>
+					<UserContext.Provider value={leagueUsers}>
+						<RosterContext.Provider value={leagueRosters}>
+							<div>
+								<div className='p-2 gap-y-3 mt-2 w-full justify-start gap-x-5 grid grid-flow-col'>
+									<div className='w-[225px] h-[177px]'>
+										<StandingsSnapshot />
+									</div>
+									<div className='w-[355px] h-[177px]'>
+										<WaiversSnapshot />
+									</div>
+								</div>
+								<div className="text-sm font-medium text-center text-black border-b border-gray-200 dark:text-gray-400 dark:border-gray-700">
+									<ul className="flex flex-wrap -mb-px">
+									{
+										tabs.map((tab) => (
+											<li key={`${tab.id}-tab-element`}>
+												<div onClick={() => setActiveTab(tab.id)} className={`hover:cursor-pointer inline-block p-4 border-b-2 border-transparent rounded-t-lg ${tab.id === activeTab ? 'text-blue-600 border-blue-600 dark:text-blue-500 dark:border-blue-500' : 'hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300'}`}>{tab.label}</div>
+											</li>
+										))
+									}
+									</ul>
+								</div>
+								<div className="w-full border-t-2 border-gray-200 flex">
+									<div className="flex flex-col flex-grow w-full h-full row-start-3">
 										{activeTab === 'summary' && <LeagueStateTable />}
 										{activeTab === 'draft' && <DraftBoard />}
 										{activeTab === 'standings' && <WeeklyStandings />}
 										{activeTab === 'transactions' && <WeeklyTransactions />}
-									</RosterContext.Provider>
-								</UserContext.Provider>
-							</LeagueContext.Provider>
-						</div>
-					</div>
-				</div>
+									</div>
+								</div>
+							</div>
+						</RosterContext.Provider>
+					</UserContext.Provider>
+				</LeagueContext.Provider>
 				:
 				<div>
-					{missingLeagueMessage}
-					<br />
 					Set your Sleeper League ID above.
 					<br />
 					If your ID is correct, it will need to be added to the database (working on creating a process for data population requests)

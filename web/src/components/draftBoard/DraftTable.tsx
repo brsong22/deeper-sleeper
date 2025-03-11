@@ -57,7 +57,7 @@ export function DraftTable({
     ), [draft]);
 
     useEffect(() => {
-        axios.get(`${API_URL}/league/${leagueId}/drafts/${draft.draft_id}`)
+        axios.get(`${API_URL}/leagues/${leagueId}/drafts/${draft.draft_id}`)
         .then(response => {
             const picks = response.data;
             setDraftPicks(picks);

@@ -1,31 +1,26 @@
 import axios from 'axios';
-import { ReactElement, useEffect, useState } from 'react';
+import { ReactElement, useContext, useEffect, useState } from 'react';
 import { LeagueRosterDict, LeagueUserDict } from '../../Types';
 import { SnapshotTable } from '../snapshotTable/SnapshotTable';
 import { getRankAttributes } from '../snapshotTable/Utils';
+import { LeagueContext, RosterContext, UserContext } from '../../App';
 
 type SnapshotRow = {
     rankIcon: ReactElement,
     iconStyle: string,
     name: string
 }
-type Props = {
-    leagueId: string,
-    week: number,
-    rosters: LeagueRosterDict,
-    users: LeagueUserDict
-}
+type Props = {}
 
-export function StandingsSnapshot({
-    leagueId,
-    week,
-    rosters,
-    users
-}: Props) {
+export function StandingsSnapshot({}: Props) {
     const API_URL = process.env.REACT_APP_API_URL;
 
     const podiumHeader = 'Podium (regular season)';
     const [podiumRows, setPodiumRows] = useState<SnapshotRow[]>([]);
+
+    const {leagueId, displayWeek: week} = useContext(LeagueContext);
+    const rosters: LeagueRosterDict = useContext(RosterContext);
+    const users: LeagueUserDict = useContext(UserContext);
 
     const podiumCellRenderer = (row: any) => (
         <div className='flex items-center'>
@@ -34,7 +29,7 @@ export function StandingsSnapshot({
     );
 
     useEffect(() => {
-        axios.get(`${API_URL}/league/${leagueId}/standings-per-week`, {
+        axios.get(`${API_URL}/leagues/${leagueId}/standings-per-week`, {
             params: {
                 year: 2024
             }
