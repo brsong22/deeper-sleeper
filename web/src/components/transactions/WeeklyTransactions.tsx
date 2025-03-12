@@ -5,6 +5,7 @@ import { LeagueRosterDict, LeagueUserDict, TeamTransaction, WeeklyTransactionsDa
 import { LeagueContext, RosterContext, UserContext } from '../../App';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUserMinus, faUserPlus } from '@fortawesome/free-solid-svg-icons';
+import { TRANSACTION_COLORS } from '../../constants/transactionConsts';
 
 type Props = {}
 
@@ -82,13 +83,14 @@ export function WeeklyTransactions({}: Props) {
     ), [allSortedTransactions]);
 
     useEffect(() => {
-        setTransactionsList(noFailedTransactions);
+        if (!transactionTypes.includes('failed')) {
+            setTransactionsList(noFailedTransactions);
+        }
     }, [noFailedTransactions]);
 
     const handleToggle = () => {
-        // this is so we can keep 'failed' at the end of the types array
         if (transactionTypes.includes('failed')) {
-            setTransactionTypes(prevTypes => prevTypes.slice(0,-1));
+            setTransactionTypes(prevTypes => prevTypes.slice(0, -1));
             setTransactionsList(noFailedTransactions);
         } else {
             setTransactionTypes(prevTypes => [...prevTypes, 'failed']);
@@ -110,23 +112,25 @@ export function WeeklyTransactions({}: Props) {
 
         const list = tList.map((item, index) => {
             const addedPlayer: string = Object.keys(item?.transaction.adds ?? {})[0];
-            const addingRoster: number = item?.transaction?.adds?.[addedPlayer];
+            const addingRoster: string = users[rosters[item?.transaction?.adds?.[addedPlayer]]?.owner_id]?.display_name ?? '';
             const droppedPlayer = Object.keys(item?.transaction.drops ?? {})[0];
-            const droppingRoster: number = item?.transaction?.drops?.[droppedPlayer];
+            const droppingRoster: string = users[rosters[item?.transaction?.drops?.[droppedPlayer]]?.owner_id]?.display_name ?? '';
             const bid = item?.transaction?.settings?.waiver_bid ?? 0;
             const week = item?.week;
+            const tagColor = TRANSACTION_COLORS[item.transaction.type];
+            const bgColor = item.transaction.status === 'failed' ? '#ffdddd' : '#ffffff';
 
             if (week > currWeek) {
                 currWeek = week;
                 return (
                     <>
                         <div key={`week-${week}`} className="transactions-sticky-week-divider mb-2 bg-yellow-500 flex justify-center items-center">Week -- {week} --</div>
-                        <div key={index} className="p-4 mb-2 bg-white">
+                        <div key={index} className="relative p-1 mb-2" style={{background: bgColor}}>
                             <div>
                                 {addedPlayer &&
                                     (
                                         <>
-                                            <FontAwesomeIcon icon={faUserPlus} className="text-green-500" /> {addedPlayer} ({addingRoster})
+                                            <FontAwesomeIcon icon={faUserPlus} className="text-green-500" /> {addedPlayer} <span className="text-xs">({addingRoster})</span>
                                             <br />
                                         </>
                                     )
@@ -134,24 +138,25 @@ export function WeeklyTransactions({}: Props) {
                                 {droppedPlayer &&
                                     (
                                         <>
-                                            <FontAwesomeIcon icon={faUserMinus} className="text-red-600" /> {droppedPlayer} ({droppingRoster})
+                                            <FontAwesomeIcon icon={faUserMinus} className="text-red-600" /> {droppedPlayer} <span className="text-xs">({droppingRoster})</span>
                                             <br />
                                         </>
                                     )
                                 }
                                 FAAB: ${bid}
+                                <div className="absolute right-0 top-0 h-full w-6" style={{background: tagColor}}></div>
                             </div>
                         </div>
                     </>
                 )
             } else {
                 return (
-                    <div key={index} className="p-4 mb-2 bg-white">
+                    <div key={index} className="relative p-1 mb-2" style={{background: bgColor}}>
                         <div>
                             {addedPlayer &&
                                 (
                                     <>
-                                        <FontAwesomeIcon icon={faUserPlus} className="text-green-500" /> {addedPlayer} ({addingRoster})
+                                        <FontAwesomeIcon icon={faUserPlus} className="text-green-500" /> {addedPlayer} <span className="text-xs">({addingRoster})</span>
                                         <br />
                                     </>
                                 )
@@ -159,12 +164,13 @@ export function WeeklyTransactions({}: Props) {
                             {droppedPlayer &&
                                 (
                                     <>
-                                        <FontAwesomeIcon icon={faUserMinus} className="text-red-600" /> {droppedPlayer} ({droppingRoster})
+                                        <FontAwesomeIcon icon={faUserMinus} className="text-red-600" /> {droppedPlayer} <span className="text-xs">({droppingRoster})</span>
                                         <br />
                                     </>
                                 )
                             }
                             FAAB: ${bid}
+                            <div className="absolute right-0 top-0 h-full w-6" style={{background: tagColor}}></div>
                         </div>
                     </div>
                 );
@@ -183,10 +189,10 @@ export function WeeklyTransactions({}: Props) {
                     <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-400 peer-checked:bg-green-600"></div>
                     <div className="absolute left-0.5 top-0.5 w-5 h-5 bg-white border border-gray-300 rounded-full transition-transform peer-checked:translate-x-full"></div>
                 </label> - 
-                Total: <strong>{transactionsList.length}</strong>
+                Total Transactions: <strong>{transactionsList.length}</strong>
             </div>
             <div className='flex w-full h-full p-4'>
-                { transactionsList &&
+                {transactionsList &&
                     <div className='w-1/3 flex-grow bg-gray-100 overflow-auto rounded-md' style={{height: gridHeight}}>
                         {buildTransactionList(transactionsList)}
                     </div>
@@ -201,7 +207,7 @@ export function WeeklyTransactions({}: Props) {
                             padding={0.3}
                             valueScale={{ type: 'linear' }}
                             indexScale={{ type: 'band', round: true }}
-                            colors={{ scheme: 'tableau10' }}
+                            colors={({id}) => TRANSACTION_COLORS[id]}
                             borderColor={{
                                 from: 'color',
                                 modifiers: [
