@@ -255,6 +255,13 @@ export type DraftPick = {
     roster_id: number
 }
 
+export type PlayerData = {
+    id: string,
+    player: {
+        full_name: string
+    }
+}
+
 export type PlayerProjection = {
     source: string,
     source_id: number,

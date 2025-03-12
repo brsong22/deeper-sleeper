@@ -76,7 +76,7 @@ export function DraftTable({
                     dict[adp['id']] = adp;
                     
                     return dict;
-                }, {} as {[id: string]: PlayerProjection});
+                }, {} as {[id: string]: PlayerAdp});
                 setPlayerAdps(adps);
             });
             queryParams.append('week', '14');

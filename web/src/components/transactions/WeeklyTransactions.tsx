@@ -3,9 +3,8 @@ import axios from "axios";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { LeagueRosterDict, LeagueUserDict, TeamTransaction, WeeklyTransactionsData } from '../../Types';
 import { LeagueContext, RosterContext, UserContext } from '../../App';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUserMinus, faUserPlus } from '@fortawesome/free-solid-svg-icons';
 import { TRANSACTION_COLORS } from '../../constants/transactionConsts';
+import TransactionsList from './TransactionsList';
 
 type Props = {}
 
@@ -25,6 +24,7 @@ export function WeeklyTransactions({}: Props) {
     const [teamTransactionTotals, setTeamTransactionTotals] = useState<TeamTransactionsData[]>([]);
     const [allSortedTransactions, setAllSortedTransactions] = useState<{week: number, transaction: TeamTransaction}[]>([]);
     const [transactionsList, setTransactionsList] = useState<{week: number, transaction: TeamTransaction}[]>([]);
+    const [playerIds , setPlayerIds] = useState<Set<string>>(new Set([]));
     const leagueId: string = useContext(LeagueContext).leagueId;
     const users: LeagueUserDict = useContext(UserContext);
     const rosters: LeagueRosterDict = useContext(RosterContext);
@@ -41,11 +41,14 @@ export function WeeklyTransactions({}: Props) {
                 const types: string[] = [];
                 const totals: TeamTransactionTotals = {};
                 const allTransactions: {week: number, transaction: TeamTransaction}[] = [];
+                const players = new Set<string>([]);
                 // @ts-ignore
                 for (const [week, weeksTransactions] of Object.entries(transactions)) {
                     for (const [teamId, teamTransactions] of Object.entries(weeksTransactions)) {
                         for (const t of teamTransactions) {
                             allTransactions.push({week: parseInt(week, 10), transaction: t});
+                            Object.keys(t.adds ?? {}).forEach((id) => players.add(id));
+                            Object.keys(t.drops ?? {}).forEach((id) => players.add(id));
                             if (!types.includes(t['type'])) {
                                 types.push(t['type']);
                             };
@@ -69,6 +72,7 @@ export function WeeklyTransactions({}: Props) {
                     'id': users[rosters[teamId].owner_id].display_name
                 }));
                 setTransactionTypes(types);
+                setPlayerIds(players);
                 setTeamTransactionTotals(transactionTotals);
                 allTransactions.sort((a, b) => (a.transaction.created - b.transaction.created));
                 setAllSortedTransactions(allTransactions);
@@ -107,79 +111,6 @@ export function WeeklyTransactions({}: Props) {
         }
     }, []);
 
-    const buildTransactionList = (tList: {week: number, transaction: TeamTransaction}[]) => {
-        let currWeek = 0;
-
-        const list = tList.map((item, index) => {
-            const addedPlayer: string = Object.keys(item?.transaction.adds ?? {})[0];
-            const addingRoster: string = users[rosters[item?.transaction?.adds?.[addedPlayer]]?.owner_id]?.display_name ?? '';
-            const droppedPlayer = Object.keys(item?.transaction.drops ?? {})[0];
-            const droppingRoster: string = users[rosters[item?.transaction?.drops?.[droppedPlayer]]?.owner_id]?.display_name ?? '';
-            const bid = item?.transaction?.settings?.waiver_bid ?? 0;
-            const week = item?.week;
-            const tagColor = TRANSACTION_COLORS[item.transaction.type];
-            const bgColor = item.transaction.status === 'failed' ? '#ffdddd' : '#ffffff';
-
-            if (week > currWeek) {
-                currWeek = week;
-                return (
-                    <>
-                        <div key={`week-${week}`} className="transactions-sticky-week-divider mb-2 bg-yellow-500 flex justify-center items-center">Week -- {week} --</div>
-                        <div key={index} className="relative p-1 mb-2" style={{background: bgColor}}>
-                            <div>
-                                {addedPlayer &&
-                                    (
-                                        <>
-                                            <FontAwesomeIcon icon={faUserPlus} className="text-green-500" /> {addedPlayer} <span className="text-xs">({addingRoster})</span>
-                                            <br />
-                                        </>
-                                    )
-                                }
-                                {droppedPlayer &&
-                                    (
-                                        <>
-                                            <FontAwesomeIcon icon={faUserMinus} className="text-red-600" /> {droppedPlayer} <span className="text-xs">({droppingRoster})</span>
-                                            <br />
-                                        </>
-                                    )
-                                }
-                                FAAB: ${bid}
-                                <div className="absolute right-0 top-0 h-full w-6" style={{background: tagColor}}></div>
-                            </div>
-                        </div>
-                    </>
-                )
-            } else {
-                return (
-                    <div key={index} className="relative p-1 mb-2" style={{background: bgColor}}>
-                        <div>
-                            {addedPlayer &&
-                                (
-                                    <>
-                                        <FontAwesomeIcon icon={faUserPlus} className="text-green-500" /> {addedPlayer} <span className="text-xs">({addingRoster})</span>
-                                        <br />
-                                    </>
-                                )
-                            }
-                            {droppedPlayer &&
-                                (
-                                    <>
-                                        <FontAwesomeIcon icon={faUserMinus} className="text-red-600" /> {droppedPlayer} <span className="text-xs">({droppingRoster})</span>
-                                        <br />
-                                    </>
-                                )
-                            }
-                            FAAB: ${bid}
-                            <div className="absolute right-0 top-0 h-full w-6" style={{background: tagColor}}></div>
-                        </div>
-                    </div>
-                );
-            }
-        });
-
-        return list;
-    }
-
     return (
         <>
             <div className="flex gap-2 w-full p-4 pb-0">
@@ -192,11 +123,11 @@ export function WeeklyTransactions({}: Props) {
                 Total Transactions: <strong>{transactionsList.length}</strong>
             </div>
             <div className='flex w-full h-full p-4'>
-                {transactionsList &&
-                    <div className='w-1/3 flex-grow bg-gray-100 overflow-auto rounded-md' style={{height: gridHeight}}>
-                        {buildTransactionList(transactionsList)}
-                    </div>
-                }
+                <div className='flex w-1/3 h-full border-2 border-solid border-t-0 border-gray-100 rounded-md'>
+                    {transactionsList &&
+                        <TransactionsList gridHeight={gridHeight} transactions={transactionsList} playerIds={playerIds}/>
+                    }
+                </div>
                 <div ref={parentRef} className='w-2/3 flex-grow'>
                     <div className="w-full p-1" style={{height: gridHeight}}>
                         <ResponsiveBar
