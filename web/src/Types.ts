@@ -91,14 +91,15 @@ export type WeeklyStandingsData = {
 export type TeamTransaction = {
     status: string,
     type: string,
+    created: number,
     settings: {
         waiver_bid: number
     },
     adds: {
-        [key: number]: number
+        [key: string]: number
     },
     drops: {
-        [key: number]: number
+        [key: string]: number
     },
     roster_ids: number[]
 }

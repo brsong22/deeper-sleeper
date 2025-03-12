@@ -5,3 +5,10 @@
 .app-header {
   z-index: 99999;
 }
+
+.transactions-sticky-week-divider {
+  position: sticky;
+  top: 0;
+  font-weight: bold;
+  z-index: 10; /* Keep it above content */
+}

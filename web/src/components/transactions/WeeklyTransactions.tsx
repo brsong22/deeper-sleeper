@@ -1,8 +1,10 @@
 import { ResponsiveBar } from '@nivo/bar';
 import axios from "axios";
-import { useContext, useEffect, useRef, useState } from "react";
-import { LeagueRosterDict, LeagueUserDict, WeeklyTransactionsData } from '../../Types';
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { LeagueRosterDict, LeagueUserDict, TeamTransaction, WeeklyTransactionsData } from '../../Types';
 import { LeagueContext, RosterContext, UserContext } from '../../App';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faUserMinus, faUserPlus } from '@fortawesome/free-solid-svg-icons';
 
 type Props = {}
 
@@ -20,6 +22,8 @@ export function WeeklyTransactions({}: Props) {
 
     const [transactionTypes, setTransactionTypes] = useState<string[]>([]);
     const [teamTransactionTotals, setTeamTransactionTotals] = useState<TeamTransactionsData[]>([]);
+    const [allSortedTransactions, setAllSortedTransactions] = useState<{week: number, transaction: TeamTransaction}[]>([]);
+    const [transactionsList, setTransactionsList] = useState<{week: number, transaction: TeamTransaction}[]>([]);
     const leagueId: string = useContext(LeagueContext).leagueId;
     const users: LeagueUserDict = useContext(UserContext);
     const rosters: LeagueRosterDict = useContext(RosterContext);
@@ -35,10 +39,12 @@ export function WeeklyTransactions({}: Props) {
                 const transactions: WeeklyTransactionsData = response.data;
                 const types: string[] = [];
                 const totals: TeamTransactionTotals = {};
+                const allTransactions: {week: number, transaction: TeamTransaction}[] = [];
                 // @ts-ignore
                 for (const [week, weeksTransactions] of Object.entries(transactions)) {
                     for (const [teamId, teamTransactions] of Object.entries(weeksTransactions)) {
                         for (const t of teamTransactions) {
+                            allTransactions.push({week: parseInt(week, 10), transaction: t});
                             if (!types.includes(t['type'])) {
                                 types.push(t['type']);
                             };
@@ -63,17 +69,30 @@ export function WeeklyTransactions({}: Props) {
                 }));
                 setTransactionTypes(types);
                 setTeamTransactionTotals(transactionTotals);
+                allTransactions.sort((a, b) => (a.transaction.created - b.transaction.created));
+                setAllSortedTransactions(allTransactions);
             });
         } catch (error) {
             console.error('Error fetching standings-per-week:', error);
         }
     }, [API_URL, leagueId, rosters, users]);
 
+    const noFailedTransactions: {week: number, transaction: TeamTransaction}[] = useMemo(() => (
+        allSortedTransactions.filter((t) => (t.transaction.status !== 'failed'))
+    ), [allSortedTransactions]);
+
+    useEffect(() => {
+        setTransactionsList(noFailedTransactions);
+    }, [noFailedTransactions]);
+
     const handleToggle = () => {
+        // this is so we can keep 'failed' at the end of the types array
         if (transactionTypes.includes('failed')) {
             setTransactionTypes(prevTypes => prevTypes.slice(0,-1));
+            setTransactionsList(noFailedTransactions);
         } else {
             setTransactionTypes(prevTypes => [...prevTypes, 'failed']);
+            setTransactionsList(allSortedTransactions);
         }
     };
 
@@ -86,94 +105,171 @@ export function WeeklyTransactions({}: Props) {
         }
     }, []);
 
+    const buildTransactionList = (tList: {week: number, transaction: TeamTransaction}[]) => {
+        let currWeek = 0;
+
+        const list = tList.map((item, index) => {
+            const addedPlayer: string = Object.keys(item?.transaction.adds ?? {})[0];
+            const addingRoster: number = item?.transaction?.adds?.[addedPlayer];
+            const droppedPlayer = Object.keys(item?.transaction.drops ?? {})[0];
+            const droppingRoster: number = item?.transaction?.drops?.[droppedPlayer];
+            const bid = item?.transaction?.settings?.waiver_bid ?? 0;
+            const week = item?.week;
+
+            if (week > currWeek) {
+                currWeek = week;
+                return (
+                    <>
+                        <div key={`week-${week}`} className="transactions-sticky-week-divider mb-2 bg-yellow-500 flex justify-center items-center">Week -- {week} --</div>
+                        <div key={index} className="p-4 mb-2 bg-white">
+                            <div>
+                                {addedPlayer &&
+                                    (
+                                        <>
+                                            <FontAwesomeIcon icon={faUserPlus} className="text-green-500" /> {addedPlayer} ({addingRoster})
+                                            <br />
+                                        </>
+                                    )
+                                }
+                                {droppedPlayer &&
+                                    (
+                                        <>
+                                            <FontAwesomeIcon icon={faUserMinus} className="text-red-600" /> {droppedPlayer} ({droppingRoster})
+                                            <br />
+                                        </>
+                                    )
+                                }
+                                FAAB: ${bid}
+                            </div>
+                        </div>
+                    </>
+                )
+            } else {
+                return (
+                    <div key={index} className="p-4 mb-2 bg-white">
+                        <div>
+                            {addedPlayer &&
+                                (
+                                    <>
+                                        <FontAwesomeIcon icon={faUserPlus} className="text-green-500" /> {addedPlayer} ({addingRoster})
+                                        <br />
+                                    </>
+                                )
+                            }
+                            {droppedPlayer &&
+                                (
+                                    <>
+                                        <FontAwesomeIcon icon={faUserMinus} className="text-red-600" /> {droppedPlayer} ({droppingRoster})
+                                        <br />
+                                    </>
+                                )
+                            }
+                            FAAB: ${bid}
+                        </div>
+                    </div>
+                );
+            }
+        });
+
+        return list;
+    }
+
     return (
         <>
-            <div className="flex items-center justify-between w-64 p-4">
+            <div className="flex gap-2 w-full p-4 pb-0">
                 <span className="text-sm font-semibold text-gray-800">Include Failed Waivers</span>
-                <label className="relative inline-flex items-center cursor-pointer">
+                <label className="relative inline-flex items-center cursor-pointer mr-1">
                     <input type="checkbox" className="sr-only peer" onChange={handleToggle}/>
                     <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-400 peer-checked:bg-green-600"></div>
                     <div className="absolute left-0.5 top-0.5 w-5 h-5 bg-white border border-gray-300 rounded-full transition-transform peer-checked:translate-x-full"></div>
-                </label>
+                </label> - 
+                Total: <strong>{transactionsList.length}</strong>
             </div>
-            <div ref={parentRef} className='w-full flex-grow'>
-                <div className="w-full" style={{height: gridHeight}}>
-                    <ResponsiveBar
-                        data={teamTransactionTotals}
-                        keys={transactionTypes}
-                        indexBy="id"
-                        margin={{ top: 50, right: 130, bottom: 50, left: 60 }}
-                        padding={0.3}
-                        valueScale={{ type: 'linear' }}
-                        indexScale={{ type: 'band', round: true }}
-                        colors={{ scheme: 'tableau10' }}
-                        borderColor={{
-                            from: 'color',
-                            modifiers: [
-                                [
-                                    'darker',
-                                    1.6
+            <div className='flex w-full h-full p-4'>
+                { transactionsList &&
+                    <div className='w-1/3 flex-grow bg-gray-100 overflow-auto rounded-md' style={{height: gridHeight}}>
+                        {buildTransactionList(transactionsList)}
+                    </div>
+                }
+                <div ref={parentRef} className='w-2/3 flex-grow'>
+                    <div className="w-full p-1" style={{height: gridHeight}}>
+                        <ResponsiveBar
+                            data={teamTransactionTotals}
+                            keys={transactionTypes}
+                            indexBy="id"
+                            margin={{ top: 50, right: 130, bottom: 50, left: 60 }}
+                            padding={0.3}
+                            valueScale={{ type: 'linear' }}
+                            indexScale={{ type: 'band', round: true }}
+                            colors={{ scheme: 'tableau10' }}
+                            borderColor={{
+                                from: 'color',
+                                modifiers: [
+                                    [
+                                        'darker',
+                                        1.6
+                                    ]
                                 ]
-                            ]
-                        }}
-                        axisTop={null}
-                        axisRight={null}
-                        axisBottom={{
-                            tickSize: 5,
-                            tickPadding: 5,
-                            tickRotation: 0,
-                            legend: 'Team',
-                            legendPosition: 'middle',
-                            legendOffset: 32,
-                            truncateTickAt: 0
-                        }}
-                        axisLeft={{
-                            tickSize: 5,
-                            tickPadding: 5,
-                            tickRotation: 0,
-                            legend: 'Transactions',
-                            legendPosition: 'middle',
-                            legendOffset: -40,
-                            truncateTickAt: 0
-                        }}
-                        labelSkipWidth={12}
-                        labelSkipHeight={12}
-                        labelTextColor={{
-                            from: 'color',
-                            modifiers: [
-                                [
-                                    'darker',
-                                    1.6
+                            }}
+                            axisTop={null}
+                            axisRight={null}
+                            axisBottom={{
+                                tickSize: 5,
+                                tickPadding: 5,
+                                tickRotation: 0,
+                                legend: 'Team',
+                                legendPosition: 'middle',
+                                legendOffset: 32,
+                                truncateTickAt: 0
+                            }}
+                            axisLeft={{
+                                tickSize: 5,
+                                tickPadding: 5,
+                                tickRotation: 0,
+                                legend: 'Transactions',
+                                legendPosition: 'middle',
+                                legendOffset: -40,
+                                truncateTickAt: 0
+                            }}
+                            labelSkipWidth={12}
+                            labelSkipHeight={12}
+                            labelTextColor={{
+                                from: 'color',
+                                modifiers: [
+                                    [
+                                        'darker',
+                                        1.6
+                                    ]
                                 ]
-                            ]
-                        }}
-                        legends={[
-                            {
-                                dataFrom: 'keys',
-                                anchor: 'bottom-right',
-                                direction: 'column',
-                                justify: false,
-                                translateX: 120,
-                                translateY: 0,
-                                itemsSpacing: 2,
-                                itemWidth: 100,
-                                itemHeight: 20,
-                                itemDirection: 'left-to-right',
-                                itemOpacity: 0.85,
-                                symbolSize: 20,
-                                effects: [
-                                    {
-                                        on: 'hover',
-                                        style: {
-                                            itemOpacity: 1
+                            }}
+                            legends={[
+                                {
+                                    dataFrom: 'keys',
+                                    anchor: 'bottom-right',
+                                    direction: 'column',
+                                    justify: false,
+                                    translateX: 120,
+                                    translateY: 0,
+                                    itemsSpacing: 2,
+                                    itemWidth: 100,
+                                    itemHeight: 20,
+                                    itemDirection: 'left-to-right',
+                                    itemOpacity: 0.85,
+                                    symbolSize: 20,
+                                    effects: [
+                                        {
+                                            on: 'hover',
+                                            style: {
+                                                itemOpacity: 1
+                                            }
                                         }
-                                    }
-                                ]
-                            }
-                        ]}
-                        enableTotals
-                        role="application"
-                    />
+                                    ]
+                                }
+                            ]}
+                            enableTotals
+                            role="application"
+                        />
+                    </div>
                 </div>
             </div>
         </>
