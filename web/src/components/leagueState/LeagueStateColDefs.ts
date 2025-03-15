@@ -48,11 +48,11 @@ export const leagueStateColDefs: ColDef[] = [
         headerTooltip: 'Min Potential, Actual, Max Potential Total Points',
         cellRenderer: LeagueStatePointsCellRenderer,
         cellRendererParams: (params: any) => ({
-            max: params.context.potentialPoints[params.data.rosterId].max,
-            min: params.context.potentialPoints[params.data.rosterId].min,
+            max: params.context.teamPotentials[params.data.rosterId].max,
+            min: params.context.teamPotentials[params.data.rosterId].min,
             actual: params.data.points,
-            leagueMax: params.context.leaguePotentialPoints.absMax,
-            leagueMin: params.context.leaguePotentialPoints.absMin
+            leagueMax: params.context.leagueMinMaxPotentials.absMax,
+            leagueMin: params.context.leagueMinMaxPotentials.absMin
         }),
         flex: 2,
         cellStyle: {
