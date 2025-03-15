@@ -19,6 +19,9 @@ export type LeagueInfo = {
     sport: string,
     season_type: string,
     season: number,
+    settings: {
+        playoff_week_start: number
+    },
     draft_id: string,
     league_id: string,
     previous_league_id: string | null,

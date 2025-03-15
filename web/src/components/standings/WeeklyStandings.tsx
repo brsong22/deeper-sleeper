@@ -1,95 +1,75 @@
 import { ResponsiveBump } from "@nivo/bump";
-import axios from "axios";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useMemo } from "react";
 import {
 	LeagueUserDict,
-	LeagueRosterDict
+	LeagueRosterDict,
+    WeeklyStandingsData
 } from '../../Types'
-import { LeagueContext, RosterContext, UserContext } from "../../App";
+import { TabContentHeight, LeagueContext, RosterContext, UserContext } from "../../App";
+import axiosClient from "../../axiosConfig";
+import { useQuery } from "@tanstack/react-query";
 
 type Props = {}
 
-type WeekStandingData = {
-    x: string,
-    y: number
-}
-type StandingsData = {
-    id: string,
-    data: WeekStandingData[]
+const fetchLeagueStandings = async (leagueId: string, year: number): Promise<WeeklyStandingsData> => {
+    const data = await axiosClient.get(`/leagues/${leagueId}/standings-per-week`, {
+        params: {
+            year
+        }
+    });
+
+    return data.data;
 }
 
 export function WeeklyStandings({}: Props) {
-    const API_URL = process.env.REACT_APP_API_URL;
-
-    const [weeklyStandings, setWeeklyStandings] = useState<StandingsData[]>([]);
-    const {leagueId, selectedYear} = useContext(LeagueContext);
+    const {leagueId, selectedYear: year} = useContext(LeagueContext);
+    const tabContentHeight = useContext(TabContentHeight);
     const users: LeagueUserDict = useContext(UserContext);
     const rosters: LeagueRosterDict = useContext(RosterContext);
     
-    useEffect(() => {
-        try {
-            axios.get(`${API_URL}/leagues/${leagueId}/standings-per-week`, {
-                params: {
-                    year: selectedYear
+    const {data: weeklyStandings} = useQuery({
+        queryKey: ['weeklyStandings', leagueId, year],
+        queryFn: () => fetchLeagueStandings(leagueId, year),
+        select: (data) => data
+    });
+
+    const formattedWeeklyStandings = useMemo(() => {
+        if (weeklyStandings) {
+            type RankingObject = {'x': string, 'y': number};
+            type RankingAccumulator = {
+                [key: string]: {
+                    'id': string,
+                    'data': RankingObject[]
                 }
-            })
-            .then(response => {
-                type TeamRankingObject = {
-                    [key: number]: {
-                        record: string,
-                        wins: number,
-                        losses: number,
-                        points: number
+            };
+            const formattedStandings = Object.entries(weeklyStandings).reduce<RankingAccumulator>((acc, [week, rankings]) => {
+                rankings.forEach((team, index) => {
+                    const rank = index + 1;
+                    const teamId = Object.keys(team)[0];
+                    if (acc[teamId]) {
+                        acc[teamId]['data'].push({'x': week, 'y': rank});
+                    } else {
+                        acc[teamId] = {
+                            'id': users[rosters[teamId].owner_id].display_name,
+                            'data': [{'x': week, 'y': rank}]
+                        };
                     }
-                };
-                type WeeklyStandings = {
-                    [key: number]: TeamRankingObject[]
-                };
-                const standings: WeeklyStandings = response.data;
-                type RankingObject = {'x': string, 'y': number};
-                type RankingAccumulator = {
-                    [key: string]: {
-                        'id': string,
-                        'data': RankingObject[]
-                    }
-                };
-                const formattedStandings = Object.entries(standings).reduce<RankingAccumulator>((acc, [week, rankings]) => {
-                    rankings.forEach((team, index) => {
-                        const rank = index + 1;
-                        const teamId = Object.keys(team)[0];
-                        if (acc[teamId]) {
-                            acc[teamId]['data'].push({'x': week, 'y': rank});
-                        } else {
-                            acc[teamId] = {
-                                'id': users[rosters[teamId].owner_id].display_name,
-                                'data': [{'x': week, 'y': rank}]
-                            };
-                        }
-                    })
-                    return acc;
-                }, {});
-                setWeeklyStandings(Object.values(formattedStandings));
-            });
-        } catch (error) {
-            console.error('Error fetching standings-per-week:', error);
-        }
-    }, [API_URL, leagueId, rosters, selectedYear, users]);
+                })
+                return acc;
+            }, {});
 
-    const [gridHeight, setGridHeight] = useState<number>();
-    const parentRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        if (parentRef.current) {
-            setGridHeight(parentRef.current.clientHeight)
+            return Object.values(formattedStandings);
         }
-    }, []);
+
+        return [];
+    }, [weeklyStandings]);
 
     return (
-        <div ref={parentRef} className='w-full h-full'>
-            <div className="flex-grow w-full" style={{height: gridHeight}}>
+        <div className='w-full h-full'>
+            <div className="flex-grow w-full" style={{height: tabContentHeight}}>
                 {// @ts-ignore
                     <ResponsiveBump
-                        data={weeklyStandings}
+                        data={formattedWeeklyStandings}
                         colors={{ scheme: 'tableau10' }}
                         lineWidth={3}
                         activeLineWidth={6}

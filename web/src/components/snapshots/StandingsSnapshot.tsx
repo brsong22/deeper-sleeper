@@ -1,9 +1,10 @@
-import axios from 'axios';
-import { ReactElement, useContext, useEffect, useState } from 'react';
-import { LeagueRosterDict, LeagueUserDict } from '../../Types';
+import { ReactElement, useContext, useMemo } from 'react';
+import { LeagueRosterDict, LeagueUserDict, WeeklyStandingsData } from '../../Types';
 import { SnapshotTable } from '../snapshotTable/SnapshotTable';
 import { getRankAttributes } from '../snapshotTable/Utils';
 import { LeagueContext, RosterContext, UserContext } from '../../App';
+import axiosClient from '../../axiosConfig';
+import { useQuery } from '@tanstack/react-query';
 
 type SnapshotRow = {
     rankIcon: ReactElement,
@@ -12,13 +13,20 @@ type SnapshotRow = {
 }
 type Props = {}
 
+const fetchLeagueStandings = async (leagueId: string, year: number): Promise<WeeklyStandingsData> => {
+    const data = await axiosClient.get(`/leagues/${leagueId}/standings-per-week`, {
+        params: {
+            year
+        }
+    });
+
+    return data.data;
+}
+
 export function StandingsSnapshot({}: Props) {
-    const API_URL = process.env.REACT_APP_API_URL;
-
     const podiumHeader = 'Podium (regular season)';
-    const [podiumRows, setPodiumRows] = useState<SnapshotRow[]>([]);
 
-    const {leagueId, displayWeek: week} = useContext(LeagueContext);
+    const {leagueId, selectedYear: year, displayWeek: week} = useContext(LeagueContext);
     const rosters: LeagueRosterDict = useContext(RosterContext);
     const users: LeagueUserDict = useContext(UserContext);
 
@@ -28,19 +36,15 @@ export function StandingsSnapshot({}: Props) {
         </div>
     );
 
-    useEffect(() => {
-        axios.get(`${API_URL}/leagues/${leagueId}/standings-per-week`, {
-            params: {
-                year: 2024
-            }
-        })
-        .then(response => {
-            const standings = response.data;
-            const finalStandings = standings[week];
-            // const first = finalStandings[0];
-            // const second = finalStandings[1];
-            // const third = finalStandings[2];
-            // const last = finalStandings[Object.keys(users).length]
+    const {data: weeklyStandings} = useQuery({
+        queryKey: ['weeklyStandings', leagueId, year],
+        queryFn: () => fetchLeagueStandings(leagueId, year),
+        select: (data) => data
+    });
+
+    const podiumRows: Record<number, SnapshotRow>[] = useMemo(() => {
+        if (weeklyStandings) {
+            const finalStandings = weeklyStandings[week];
             const ranks = [0, 1, 2, Object.keys(rosters).length-1];
             const rows = ranks.reduce((acc, rank) => {
                 const {icon, style} = getRankAttributes(rank);
@@ -49,11 +53,15 @@ export function StandingsSnapshot({}: Props) {
                     iconStyle: style,
                     name: users[rosters[Object.keys(finalStandings[rank])[0]].owner_id].display_name
                 };
-                return acc
+
+                return acc;
             }, {} as Record<number, SnapshotRow>);
-            setPodiumRows(Object.values(rows))
-        });
-    }, []);
+
+            return Object.values(rows);
+        }
+
+        return [];
+    }, [weeklyStandings, week, rosters, users]);
 
     return (
         <>

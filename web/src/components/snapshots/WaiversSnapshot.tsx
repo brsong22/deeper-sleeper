@@ -1,9 +1,10 @@
-import axios from 'axios';
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useContext, useMemo } from 'react';
 import { WaiverSnapshotData } from '../../Types';
 import { SnapshotTable } from '../snapshotTable/SnapshotTable';
 import { getRankAttributes } from '../snapshotTable/Utils';
 import { LeagueContext } from '../../App';
+import axiosClient from '../../axiosConfig';
+import { useQuery } from '@tanstack/react-query';
 
 type TopWaiver = {
     faab: number,
@@ -23,12 +24,19 @@ type SnapshotRow = {
 }
 type Props = {}
 
+const fetchWaivers = async (leagueId: string, year: number): Promise<WaiverSnapshotData> => {
+    const data = await axiosClient.get(`/leagues/${leagueId}/snapshot`, {
+        params: {
+            year,
+            type: 'waivers'
+        }
+    });
+
+    return data.data;
+}
+
 export function WaiversSnapshot({}: Props) {
-    const API_URL = process.env.REACT_APP_API_URL;
-
-    const [topWaivers, setTopWaivers] = useState<TopWaiver[]>([]);
-
-    const {leagueId} = useContext(LeagueContext);
+    const {leagueId, selectedYear: year} = useContext(LeagueContext);
 
     const topWaiversHeader = 'Top Waivers (total pts / weeks played)';
 
@@ -38,19 +46,18 @@ export function WaiversSnapshot({}: Props) {
         </div>
     );
 
-    useEffect(() => {
-        axios.get(`${API_URL}/leagues/${leagueId}/snapshot`, {
-            params: {
-                year: 2024,
-                type: 'waivers'
-            }
-        })
-        .then(response => {
-            const transactionsByWeek: WaiverSnapshotData = response.data;
+    const {data: transactionsByWeek} = useQuery({
+        queryKey: ['weeklyTransactions', leagueId, year],
+        queryFn: () => fetchWaivers(leagueId, year),
+        select: (data) => data
+    });
 
+    const topWaivers: TopWaiver[] = useMemo(() => {
+        if (transactionsByWeek) {
             const topWaivers: TopWaiver[] = Object.values(transactionsByWeek).flatMap((rosterWaivers) => {
                 const rosterName = rosterWaivers['roster_name'];
                 const waiverPlayers = rosterWaivers['waivers'];
+
                 return Object.values(waiverPlayers).map((waiverPlayer) => {
                     return {
                         ...waiverPlayer,
@@ -59,9 +66,11 @@ export function WaiversSnapshot({}: Props) {
                 })
             }).sort((waiver1, waiver2) => (Number(waiver2['points']) || 0) - (Number(waiver1['points']) || 0)).slice(0, 3);
 
-            setTopWaivers(topWaivers);
-        });
-    }, [API_URL]);
+            return topWaivers;
+        }
+
+        return [];
+    }, [transactionsByWeek]);
 
     const rows: SnapshotRow[] = useMemo(() => {
         return topWaivers.map((waiver, index) => {
