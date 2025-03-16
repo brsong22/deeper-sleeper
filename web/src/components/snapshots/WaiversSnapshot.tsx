@@ -24,7 +24,7 @@ type SnapshotRow = {
 }
 type Props = {}
 
-const fetchWaivers = async (leagueId: string, year: number): Promise<WaiverSnapshotData> => {
+const fetchWaiversSnapshot = async (leagueId: string, year: number): Promise<WaiverSnapshotData> => {
     const data = await axiosClient.get(`/leagues/${leagueId}/snapshot`, {
         params: {
             year,
@@ -47,8 +47,8 @@ export function WaiversSnapshot({}: Props) {
     );
 
     const {data: transactionsByWeek} = useQuery({
-        queryKey: ['weeklyTransactions', leagueId, year],
-        queryFn: () => fetchWaivers(leagueId, year),
+        queryKey: ['waiversSnapshot', leagueId, year],
+        queryFn: () => fetchWaiversSnapshot(leagueId, year),
         select: (data) => data
     });
 

@@ -8,11 +8,11 @@ import { TRANSACTION_COLORS } from '../../constants/transactionConsts';
 import axiosClient from "../../axiosConfig";
 
 type Props = {
-    playerIds: Set<string>,
+    playerIds: string[],
     transactions: {week: number, transaction: TeamTransaction}[]
 }
 
-const fetchTransactionsPlayers = async (playerIds: Set<string>, year: number, week: number): Promise<PlayerData[]> => {
+const fetchTransactionsPlayers = async (playerIds: string[], year: number, week: number): Promise<PlayerData[]> => {
     const queryParams = new URLSearchParams();
     const ids = Array.from(playerIds);
     if (ids.length > 0) {

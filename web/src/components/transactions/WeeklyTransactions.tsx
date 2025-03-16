@@ -125,7 +125,7 @@ export function WeeklyTransactions({}: Props) {
             <div className='box-border flex max-w-full flex-grow' style={{height: `${tabContentHeight - innerContentHeight}px`}}>
                 <div className='box-border w-1/3 max-h-full flex flex-grow border-2 border-solid border-t-0 border-gray-100 rounded-md'>
                     {allSortedTransactions &&
-                        <TransactionsList transactions={showFailed ? allSortedTransactions : noFailedTransactions} playerIds={transactionPlayerIds}/>
+                        <TransactionsList transactions={showFailed ? allSortedTransactions : noFailedTransactions} playerIds={Array.from(transactionPlayerIds)}/>
                     }
                 </div>
                 <div className='box-border w-2/3 h-full'>
