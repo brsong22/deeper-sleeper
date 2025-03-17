@@ -1,20 +1,31 @@
 # deeper-sleeper
-Dive deeper into Sleeper fantasy football league stats.
-![Deeper Sleeper screenshot](images/deeper_sleeper_screenshot.png)
+#### Dive deeper into Sleeper fantasy football league stats.
+**https://deeper-sleeper.com**
+
+![Deeper Sleeper screenshot](images/deeper_sleeper_landing_page.png)
 
 #### Current Features:
-- **Snapshots**: quick views for top performers/various statistics
+- **Header**:
+![Header banner](images/header_screenshot.png)
+The **header** displays basic information such as League Name and ID, Year, Week, and Status. The league ID can be changed by clicking the pencil icon and entering a valid Sleeper ID (the dashboard will only populate if data for League IDs that've been loaded into the database). The Year can be selected via the dropdown to view previous years the league was active (the dropdown will only populate with years that there is data for in the database). Week shows the current week, if the season is completed it will remain on the last week of the *regular* season. Status simply shows the current status of the league (e.g. drafting, in season, completed). The header banner color will change depending on the status of the league.
+- **Snapshots**:
 ![Podium + Top Waivers Snapshots](images/snapshots_example.png)
-- **Summary Table**: Table showing various general statistics for the league up to this point. The teams are listed in order of standing with sortable columns
-![Summary Table](images/summary_table_example.png)
-- **Draft Results Table**: A table showing the results of the season's draft. Includes thumbs up/down to show value of pick position vs adp as well as up/down arrows to show value of pick position vs season rank. There is also a dropdown to select and view other drafts if the league has multiple seasons and drafts data.
-![Draft Results Table](images/draft_results_table_example.png)
-- **Standings Bump Graph**: A Nivo bump graph to show the standings movement week-by-week. Includes hover effects to easily identify and follow the movement of specific teams.
+**Snapshots** are small tables to display quick views for top performers/various statistics. Currently, "Podium" shows the top 3 (and sneakily last place with a short scroll) while "Top Waivers" show the top 3 waiver pickups that resulted in the most points scored among waiver moves. More to come!
+- **Summary Tab**:
+![Summary Table](images/summary_table_tab.png)
+The **summary tab** contains a table showing various general statistics for the league up to this point. The teams are listed in order of standing with sortable columns. Custom Gauge chart shows the range of Minimum potential Total Points, Actual Total Points, and Maximum potential Total Points for each team; with minimum and maximum range being determined by lowest/highest potential points within the league.
+- **Draft Result Tab**:
+![Draft Results Table](images/draft_result_table.png)
+The **draft result tab** contains a table showing the results of the season's draft for the currently selected year (selected in the header). Includes thumbs up/down to show value of **pick position vs adp** as well as up/down arrows to show value of **pick position vs season rank**. Value icon indicators' colors fall on a spectrum to further convey value. If value falls within a +/-5 range, a neutral indicator is displayed instead.
+- **Standings Tab**:
 ![Standings Bump Graph](images/standings_bump_graph_example.png)
 ![Standings Bump Graph Hover Effect](images/standings_bump_graph_hover_example.png)
-- **Transactions Totals Bar Graph**: A Nivo bar graph to show the total transactions and types each team attempted. Includes a toggle to hide/show failed waivers.
-![Transactions Totals Bar Graph](images/transactions_totals_graph_example.png)
-![Transactions Totals With Failed Waivers Bar Graph](images/transactions_totals_with_failed_example.png)
+**The standings tab** displays a Nivo bump graph to show standings movement week-by-week. Includes hover effects to easily identify and follow the movement of specific teams.
+
+- **Transactions Tab**: 
+![Transactions Totals Bar Graph](images/transactions_tab.png)
+![Transactions Totals With Failed Waivers Bar Graph](images/transactions_with_failed_tab.png)
+**The transactions tab** features a 2-column layout to display chronological order of transactions and a Nivo bar graph to display total counts of transaction types for each team. The Transactions List features a sticky Week header to make it easy to reference which week the transactions occurred. Each transaction is denoted by a colored tab on the right end to identify the type of transaction it is. If the toggle for failed transactions is enabled, failed transactions will have a light red background to discern them as failed transactions. Transaction types listed in the legend will only show types with at least 1 transaction (e.g. if no trades occur, 'trade' will not be listed in the graph legend).
 
 ---
 ---
