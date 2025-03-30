@@ -70,16 +70,29 @@ def compile_league_potential_points(matchups_by_week: dict, rosters: dict, info:
                                 for pos in p_positions:
                                     # only need to check last score because we can only replace 1 score anyways
                                     # if the player's score is lower than the last score then we don't replace
-                                    if p_points > max_roster[pos][-1]['points']:
-                                        max_diff = round(p_points - max_roster[pos][-1]['points'], 2)
-                                        replace_max = pos
-                                    if pos in ['RB', 'WR', 'TE']:
-                                        if p_points > max_roster['FLEX'][-1]['points']:
-                                            max_diff = round(p_points - max_roster[pos][-1]['points'], 2)
-                                            replace_max = 'FLEX'
+                                    if p_points > (max_roster[pos][-1]['points'] if len(max_roster[pos]) > 0 else 0):
+                                        if len(max_roster[pos]) == 0:
+                                            curr_diff = round(p_points, 2)
+                                        else:
+                                            curr_diff = round(p_points - max_roster[pos][-1]['points'], 2)
+                                        if curr_diff > max_diff:
+                                            max_diff = curr_diff
+                                            replace_max = pos
+                                    if pos in ['RB', 'WR', 'TE'] and 'QB' not in p_positions:
+                                        if p_points > (max_roster['FLEX'][-1]['points'] if len(max_roster['FLEX']) > 0 else 0):
+                                            if len(max_roster['FLEX']) == 0:
+                                                curr_diff = round(p_points, 2)
+                                            else:
+                                                curr_diff = round(p_points - max_roster[pos][-1]['points'], 2)
+                                            if curr_diff > max_diff:
+                                                max_diff = curr_diff
+                                                replace_max = 'FLEX'
                                 if replace_max is not None:
                                     ppf_max = round(ppf_max + max_diff, 2)
-                                    max_roster[replace_max][-1] = p_data
+                                    if len(max_roster[replace_max]) > 0:
+                                        max_roster[replace_max][-1] = p_data
+                                    else:
+                                        max_roster[replace_max].append(p_data)
                         for p_data in min_roster_data:
                             p_points = p_data['points']
                             p_positions = p_data['positions']
@@ -94,19 +107,30 @@ def compile_league_potential_points(matchups_by_week: dict, rosters: dict, info:
                                     avail_min_pos.remove('FLEX')
                                     ppf_min = round(ppf_min + p_points, 2)
                             elif len(p_positions) > 1:
-                                min_diff = 0
+                                min_diff = 99999
                                 replace_min = None
                                 for pos in p_positions:
-                                    if p_points < min_roster[pos][0]['points']:
-                                        min_diff = round(min_roster[pos][0]['points'] - p_points, 2)
-                                        replace_min = pos
-                                    if pos in ['RB', 'WR', 'TE']:
-                                        if p_points < min_roster['FLEX'][0]['points']:
-                                            min_diff = round(min_roster['FLEX'][0]['points'] - p_points, 2)
-                                            replace_min = 'FLEX'
+                                    if p_points < (min_roster[pos][0]['points'] if len(min_roster[pos]) > 0 else 99999):
+                                        if len(min_roster[pos]) == 0:
+                                            curr_diff = round(p_points, 2)
+                                        else:
+                                            curr_diff = round(p_points - min_roster[pos][0]['points'], 2)
+                                        if curr_diff < min_diff:
+                                            min_diff = curr_diff
+                                            replace_min = pos
+                                    if pos in ['RB', 'WR', 'TE'] and 'QB' not in p_positions:
+                                        if p_points < (min_roster['FLEX'][0]['points'] if len(min_roster['FLEX']) > 0 else 99999):
+                                            if len(min_roster['FLEX']) == 0:
+                                                curr_diff = round(min_roster['FLEX'], 2)
+                                            else:
+                                                curr_diff = round(min_roster['FLEX'][0]['points'] - p_points, 2)
+                                            if curr_diff < min_diff:
+                                                min_diff = curr_diff
+                                                replace_min = 'FLEX'
                                 if replace_min is not None:
                                     ppf_min = round(ppf_min - min_diff, 2)
-                                    min_roster[replace_min].pop(0)
+                                    if len(min_roster[replace_min]) > 0:
+                                        min_roster[replace_min].pop(0)
                                     min_roster[replace_min].append(p_data)
                         league_min_max_points[week][roster_id]['ppf_max'] = round(ppf_max, 2)
                         league_min_max_points[week][roster_id]['max_roster'] = max_roster
