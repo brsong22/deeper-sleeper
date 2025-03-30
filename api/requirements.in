@@ -23,6 +23,8 @@ pydantic
 pydantic_core
 Pygments
 pymongo
+pytest
+pytest-mock
 python-dateutil
 python-dotenv
 python-multipart

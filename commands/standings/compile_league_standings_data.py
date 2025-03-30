@@ -2,14 +2,10 @@ import argparse
 import datetime
 from api.services import sleeper, main
 import copy
-from api.utils.utils import get_env
-import os
 import time
 from api.mongodb_client import get_db
 
 db = get_db()
-get_env()
-LEAGUE_ID = os.getenv('LEAGUE_ID')
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--league', type=str, required=True, help='league id')
@@ -81,8 +77,8 @@ if __name__ == '__main__':
 
     print(f'>> compiling [league standings data]')
     league_info = sleeper.get_league_info(args.league)
-    matchups = main.get_league_matchups(league_info['season'], args.league)
-    rosters = main.get_league_rosters(league_info['season'], args.league)
+    matchups = main.get_league_matchups(args.league, league_info['season'])
+    rosters = main.get_league_rosters(args.league, league_info['season'])
     regular_season_end_week = league_info['settings']['playoff_week_start']-1
     if matchups is None:
         raise Exception(f'Error updating league standings data. Requires matchups data.')

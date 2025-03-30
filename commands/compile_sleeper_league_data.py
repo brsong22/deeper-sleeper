@@ -1,12 +1,5 @@
 from api.services import sleeper
 import argparse
-import copy
-import certifi
-from api.utils.utils import get_env
-import json
-import os
-from pymongo import MongoClient, UpdateOne
-import ssl
 import time
 from commands.league.compile_league_info_data import compile_league_info
 from commands.players.compile_nfl_players_data import compile_nfl_players
@@ -19,9 +12,6 @@ from commands.drafts.compile_league_drafts_data import compile_league_drafts
 from commands.points.compile_league_potential_points_data import compile_league_potential_points
 from commands.playoffs.compile_league_playoffs_bracket_data import compile_league_playoff_bracket
 #! > python -m commands.compile_weekly_sleeper_data
-
-get_env()
-LEAGUE_ID = os.getenv('LEAGUE_ID')
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--league', type=str, required=True, help='league id')

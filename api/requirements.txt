@@ -65,6 +65,8 @@ idna==3.10
     #   email-validator
     #   httpx
     #   requests
+iniconfig==2.0.0
+    # via pytest
 jinja2==3.1.5
     # via -r requirements.in
 jmespath==1.0.1
@@ -82,7 +84,11 @@ mdurl==0.1.2
     #   -r requirements.in
     #   markdown-it-py
 packaging==24.2
-    # via gunicorn
+    # via
+    #   gunicorn
+    #   pytest
+pluggy==1.5.0
+    # via pytest
 pulp==2.9.0
     # via -r requirements.in
 pydantic==2.10.6
@@ -98,6 +104,12 @@ pygments==2.19.1
     #   -r requirements.in
     #   rich
 pymongo==4.11
+    # via -r requirements.in
+pytest==8.3.5
+    # via
+    #   -r requirements.in
+    #   pytest-mock
+pytest-mock==3.14.0
     # via -r requirements.in
 python-dateutil==2.9.0.post0
     # via -r requirements.in

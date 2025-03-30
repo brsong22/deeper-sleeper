@@ -2,17 +2,13 @@ import argparse
 import datetime
 import time
 from api.services import sleeper
-from api.utils.utils import get_env
 from pymongo import UpdateOne
 from api.mongodb_client import get_db
-import os
 
 db = get_db()
-get_env()
-LEAGUE_ID = os.getenv('LEAGUE_ID')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--league', type=str, required=False, default=LEAGUE_ID, help='league id')
+parser.add_argument('--league', type=str, required=True, help='league id')
 args = parser.parse_args()
 
 PLAYER_FIELDS = ['active', 'player_id', 'team', 'first_name', 'last_name', 'full_name', 'fantasy_positions']

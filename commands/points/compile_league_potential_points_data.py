@@ -1,14 +1,10 @@
 import argparse
 import datetime
-import os
 import time
 from api.services import sleeper, main
-from api.utils.utils import get_env
 from api.mongodb_client import get_db
 
 db = get_db()
-get_env()
-LEAGUE_ID = os.getenv('LEAGUE_ID')
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--league', type=str, required=True, help='league id')
@@ -136,8 +132,8 @@ if __name__ == '__main__':
     print(f'>> compiling [league max points data]')
     league_info = sleeper.get_league_info(args.league)
     regular_season_end = league_info['settings']['playoff_week_start']
-    matchups = main.get_league_matchups(league_info['season'], args.league)
-    rosters = main.get_league_rosters(league_info['season'], args.league)
+    matchups = main.get_league_matchups(args.league, league_info['season'])
+    rosters = main.get_league_rosters(args.league, league_info['season'], )
 
     if matchups is None:
         raise Exception(f'Error updating league points data. Requires matchups data.')
