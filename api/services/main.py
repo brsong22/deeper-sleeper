@@ -34,10 +34,10 @@ def get_nfl_state():
     
     return nfl_state
 
-def get_players(year: int):
-    nfl_players = db['players'].find({'year': str(year)}, {'_id': 0})
+# def get_players(year: int):
+#     nfl_players = db['players'].find({'year': str(year)}, {'_id': 0})
 
-    return nfl_players
+#     return nfl_players
 
 def get_league_info(league_id: str, year: int):
     league_info = db['league_info'].find_one({'league_id': league_id, 'year': str(year)}, {'_id': 0})
