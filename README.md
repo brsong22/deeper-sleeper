@@ -1,4 +1,5 @@
 # deeper-sleeper
+![FE Deploy](https://github.com/brsong22/deeper-sleeper/actions/workflows/fe_deploy.yml/badge.svg)
 #### Dive deeper into Sleeper fantasy football league stats.
 **https://deeper-sleeper.com**
 
