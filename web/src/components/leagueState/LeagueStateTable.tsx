@@ -5,17 +5,23 @@ import { AgGridReact } from 'ag-grid-react';
 import { leagueStateColDefs } from './LeagueStateColDefs';
 import { TabContentHeight, LeagueContext, RosterContext, UserContext } from '../../App';
 import axiosClient from '../../axiosConfig';
+import detectIsMobile from '../../utils/detectIsMobile';
+import LeagueStateCards from './LeagueStateCards';
 
 type TeamPotentialPoints = {
     max: number,
     min: number
 }
-type RostersPotentialPoints = {
+export type RostersPotentialPoints = {
     [key: string]: TeamPotentialPoints
 }
-type LeagueMinMaxPotentialPoints = {
+export type LeagueMinMaxPotentialPoints = {
     absMax: number,
     absMin: number
+}
+export type RosterStandingsRow = RosterStandingsData[number] & {
+    ownerId: string,
+    rosterId: string
 }
 type Props = {}
 
@@ -40,10 +46,12 @@ const fetchRosterPotentialPoints = async (leagueId: string, year: number): Promi
 }
 
 export function LeagueStateTable({}: Props) {
+	const isMobile = detectIsMobile();
+
     const {leagueId, selectedYear: year, displayWeek: week} = useContext(LeagueContext);
     const tabContentHeight: number = useContext(TabContentHeight);
     const users: LeagueUserDict = useContext(UserContext);
-    const rosters: LeagueRosterDict = useContext(RosterContext)
+    const rosters: LeagueRosterDict = useContext(RosterContext);
 
     const {data: weeklyStandings} = useQuery({
         queryKey: ['weeklyStandings', leagueId, year],
@@ -51,7 +59,7 @@ export function LeagueStateTable({}: Props) {
         select: (data) => data
     });
 
-    const standings: RosterStandingsData[] = useMemo(() => {
+    const standings: RosterStandingsRow[] = useMemo(() => {
         if (weeklyStandings) {
             return weeklyStandings[`${week}`].map((team: RosterStandingsData) => {
                 const rosterId: string = Object.keys(team)[0];
@@ -109,11 +117,16 @@ export function LeagueStateTable({}: Props) {
         <div className='w-full h-full'>
             <div className="ag-theme-quartz w-full" style={{height: tabContentHeight}}>
                 {teamPotentials && weeklyStandings &&
+                (
+                    isMobile ?
+                    <LeagueStateCards standingsData={standings} teamPotentials={teamPotentials} leagueMinMaxPotentials={leagueMinMaxPotentials}/>
+                    :
                     <AgGridReact
                         rowData={standings}
                         columnDefs={leagueStateColDefs}
                         context={{users, rosters, teamPotentials, leagueMinMaxPotentials}}
                     />
+                )
                 }
             </div>
         </div>
