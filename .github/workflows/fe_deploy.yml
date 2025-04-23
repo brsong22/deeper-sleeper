@@ -1,0 +1,58 @@
+name: Deploy React App to S3 + Invalidate CloudFront
+
+on:
+  push:
+    branches:
+      - main
+    # paths:
+    #     - 'src/**'          # Trigger action if any file in 'src' folder changes
+    #     - 'public/**'       # Trigger action if any file in 'public' folder changes
+    #     - 'package.json'    # Trigger if dependencies or versions in package.json change
+    #     - 'package-lock.json'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: web
+
+      - name: Build Vite app
+        run: npm run build
+        working-directory: web
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+
+      - name: Ensure dist folder exists
+        run: test -d web/dist
+
+      - name: Upload to S3
+        uses: jakejarvis/s3-sync-action@v0.5.1
+        with:
+          args: --delete
+        env:
+          AWS_S3_BUCKET: ${{ secrets.S3_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          SOURCE_DIR: web/dist
+
+      - name: Invalidate CloudFront Cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.DISTRIBUTION_ID }} \
+            --paths "/*"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
