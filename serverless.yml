@@ -1,0 +1,24 @@
+service: deeper-sleeper-api
+
+provider:
+  name: aws
+  region: us-east-1
+  architecture: arm64
+  stage: prod
+  deploymentBucket:
+    name: deeper-sleeper-api
+  environment:
+    ALLOW_ORIGINS: "https://www.deeper-sleeper.com,https://deeper-sleeper.com"
+    SLEEPER_BASE_URL: ${env:SLEEPER_BASE_URL}
+    AWS_SECRET_MONGO_USER_ARN: ${env:AWS_SECRET_MONGO_USER_ARN}
+    AWS_SECRET_MONGO_PASSWORD_ARN: ${env:AWS_SECRET_MONGO_PASSWORD_ARN}
+    MONGO_CONNECTION_STRING: ${env:MONGO_CONNECTION_STRING}
+
+functions:
+  app:
+    image:
+      uri: 873859326426.dkr.ecr.us-east-1.amazonaws.com/api-lambda:latest
+    events:
+      - httpApi:
+          path: /{proxy+}
+          method: ANY

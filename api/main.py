@@ -1,3 +1,4 @@
+from mangum import Mangum
 from api.utils.utils import get_env
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -81,3 +82,5 @@ async def get_player_rankings(year = Depends(Params.get_year_str), week = Depend
 @app.get('/player-adps')
 async def get_player_adps(year = Depends(Params.get_year_str), ids = Depends(Params.get_player_ids)):
     return Main.get_player_adps(ids.ids, year.year)
+
+handler = Mangum(app)

@@ -1,5 +1,6 @@
 annotated-types
 anyio
+boto3
 certifi
 charset-normalizer
 click
@@ -15,6 +16,7 @@ httpx
 idna
 Jinja2
 jmespath
+mangum
 markdown-it-py
 MarkupSafe
 mdurl
